@@ -47,11 +47,11 @@ class Player:
         self.fascists = known_roles[Role.FASCIST]
         self.hitler = known_roles[Role.FASCIST]
         for player in self.probabilities:
-            if player in fascists:
+            if player in self.fascists:
                 self.probabilities[player] = (1, 0)
             elif player is self.name:
                 self.probabilities[player] = self_prob
-            elif player is hitler:
+            elif player is self.hitler:
                 self.probabilities[player] = (1, 1)
             else:
                 self.probabilities[player] = (fascist_prob, hitler_prob)

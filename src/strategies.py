@@ -22,7 +22,7 @@ def liberal_choose_chancellor(player, valid_players):
 
     for player in valid_players:
         if player in probabilities:
-            prob = probabilities[player][1]
+            prob = probabilities[player][0]
             if prob < min:
                 min = prob
                 players = [player]
@@ -37,7 +37,7 @@ def fascist_choose_fascist_chancellor(player, valid_players):
     fascist_players = []
     for player in valid_players:
         if player in probabilities:
-            if probabilities[player][1] == 1:
+            if probabilities[player][0] == 1:
                 fascist_players.append(player)
     return random.choice(fascist_players)
 
@@ -48,7 +48,7 @@ def fascist_choose_not_hitler_chancellor(player, valid_players):
 
     for player in valid_players:
         if player in probabilities:
-            if probabilities[player][1] == 1:
+            if probabilities[player][0] == 1:
                 fascist_players.append(player)
     return random.choice(fascist_players)
 
