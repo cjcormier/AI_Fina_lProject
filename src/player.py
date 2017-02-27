@@ -59,22 +59,29 @@ class Player:
     def set_prob(self, player, new_prob, new_hitler_prob=None):
         if new_hitler_prob is None:
             new_hitler_prob = self.probabilities[player][1]
+        if new_prob > 1:
+            pass
 
+        sub = 2
+        if player in self.fascists:
+            sub = 1
         change_prob = new_prob - self.probabilities[player][0]
-        change_prob /= (len(self.probabilities) - len(self.fascists) - 1)
+        change_prob /= (len(self.probabilities) - len(self.fascists) - sub)
+
         self.probabilities[player] = (new_prob, new_hitler_prob)
         for curr_player in self.probabilities:
             if curr_player not in [self.name, player] and curr_player not in self.fascists:
                 curr_prob = self.probabilities[curr_player][0] - change_prob
                 self.probabilities[curr_player] = (curr_prob, new_hitler_prob)
+        self.print_probs()
 
     def print_probs(self):
         print('Player {} Probabilities:'.format(self.name))
-        sum_prob = (0, 0)
+        prob_fascist, prob_hitler = (0, 0)
         for n in self.probabilities:
             print('\t{}: {}'.format(n, self.probabilities[n]))
-            sum_prob = sum_prob[0]+self.probabilities[n][0], sum_prob[1]+self.probabilities[n][1]
-        print('Total: ({}, {})'.format(sum_prob[0], sum_prob[1]))
+            prob_fascist, prob_hitler = prob_fascist+self.probabilities[n][0], prob_hitler+self.probabilities[n][1]
+        print('Total: ({}, {})'.format(prob_fascist, prob_hitler))
 
     def set_strategy(self, strategy_type, strategy):
         self.strategies[strategy_type] = strategy
@@ -98,8 +105,9 @@ class Player:
     def analyze_vote(self, president_name, chancellor_name, votes):
         pass
 
-    def analyze_revealed_card(self, chancellor, president, card):
-        self.strategies[StrategyTypes.ANALYZE_REVEALED_CARD](self, chancellor, president, card)
+    def analyze_revealed_card(self, chancellor, president, card, remaining):
+        self.strategies[StrategyTypes.ANALYZE_REVEALED_CARD](self, chancellor, president,
+                                                             card, remaining)
 
     def analyze_chancellor_card(self, chancellor, pres_card, chanc_card):
         self.strategies[StrategyTypes.ANALYZE_CHANCELLOR_CARD](self, chancellor, pres_card,

@@ -40,6 +40,9 @@ def game(num_players, players=None):
                 print('Chancellor {} is Hitler, fascists win!'.format(chancellor.name))
                 winner = BoardStates.FASCIST_WIN
             next_policy = choose_policy(president, chancellor, deck)
+            for player in players:
+                player.analyze_revealed_card(president.name, chancellor.name,
+                                             next_policy, deck.total_remaining())
         else:                       # if loop terminated due to 3 nay votes
             next_policy = deck.draw()
             anarchies += 1
@@ -86,7 +89,7 @@ def assign_roles(num_players):
 def print_roles(players):
     for player in players:
         print("Player {} is {}".format(player.name, player.role))
-        player.print_probs()
+        # player.print_probs()
 
 
 def choose_policy(president, chancellor, deck):

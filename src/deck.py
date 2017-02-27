@@ -15,6 +15,7 @@ class Deck:
             self.facDeck += self.facDisc
             self.libDisc = 0
             self.facDisc = 0
+            print('Shuffling Deck')
 
         card = randint(0, self.libDeck + self.facDeck - 1)
         # print("Liberal left: {}, Fascist left: {}".format(self.libDeck, self.facDeck))

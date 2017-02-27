@@ -16,20 +16,22 @@ class StrategyTypes(Enum):
 
 
 def choose_liberal_chancellor(player, valid_players):
-    min_prob = 1.1
+    min_prob = 1
     players = []
     probabilities = player.probabilities
     name = player.name
-
-    for player in valid_players:
-        if player is not name:
-            prob = probabilities[player][0]
+    for curr_player in valid_players:
+        if curr_player != name:
+            prob = probabilities[curr_player][0]
             if prob < min_prob:
                 min_prob = prob
-                players = [player]
+                players = [curr_player]
             elif prob == min_prob:
-                players.append(player)
-
+                players.append(curr_player)
+            if prob > 1 or prob < 0:
+                pass
+    if len(players) == 0:
+        pass
     return random.choice(players)
 
 
@@ -38,7 +40,7 @@ def choose_fascist_chancellor(player, valid_players):
     name = player.name
     fascist_players = []
     for valid_player in valid_players:
-        if valid_player is not name:
+        if valid_player != name:
             if probabilities[valid_player][0] == 1:
                 fascist_players.append(valid_player)
     if len(fascist_players) == 0:
@@ -119,6 +121,7 @@ def chancellor_choose_fascist_cards(player, president, cards, deck):
 
 
 def standard_vote(player, president, chancellor):
+    # TODO change to adapt to different player counts
     probabilities = player.probabilities
     president_prob = probabilities[president][0]
     chancellor_prob = probabilities[chancellor][0]
@@ -132,8 +135,32 @@ def standard_vote(player, president, chancellor):
     return president_prob+chancellor_prob-(president_prob*chancellor_prob) < .7
 
 
-def analyze_revealed_card(player, president, chancellor, deck):
-    pass
+def analyze_revealed_card(player, president, chancellor, card, deck):
+    if card is Cards.LIBERAL:
+        return
+    l_remaining = deck[0]
+    f_remaining = deck[1]
+    tot_remaining = l_remaining + f_remaining
+
+    prob_fff = multi_3(f_remaining)/multi_3(tot_remaining)
+    prob_ffl = 3*l_remaining*multi_2(f_remaining)/multi_3(tot_remaining)
+    prob_fll = 3*f_remaining*multi_2(l_remaining)/multi_3(tot_remaining)
+    prob_cf = player.probabilities[president][0]
+    prob_pf = player.probabilities[chancellor][0]
+
+    prob_f = (prob_fff + prob_ffl*(prob_cf+prob_pf) + prob_fll*prob_cf*prob_pf)
+
+    prob_president = (prob_fff*prob_pf + prob_ffl*(prob_cf+prob_pf) + prob_fll*prob_cf*prob_pf)
+    prob_president /= prob_f
+    player.set_prob(president, prob_president)
+
+    prob_chancellor = (prob_fff*prob_pf + prob_ffl*(prob_cf+prob_pf) + prob_fll*prob_cf*prob_pf)
+    prob_chancellor /= prob_f
+    player.set_prob(chancellor, prob_chancellor)
+
+    message = "Player {} analysed new fascist policy enacted by president {} and chancellor {}"
+    print(message.format(player.name, president, chancellor))
+    player.print_probs()
 
 
 def analyze_chancellor_card(player, chancellor, pres_cards, chanc_card):
