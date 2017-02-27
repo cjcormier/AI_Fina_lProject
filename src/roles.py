@@ -3,6 +3,6 @@ from enum import Enum, unique
 
 @unique
 class Role(Enum):
-    FASCIST = auto()
+    FASCIST = 1
     LIBERAL = 2
     HITLER = 3

@@ -3,27 +3,27 @@ Liberal:
 Choose Fascist
 
 Fascists:
-Choose Liberal
-Choose Liberal
+Choose Liberal X
+Choose Fascist X
 
 PRESIDENT_CARDS
 Liberal:
-Max Liberal
-Offer Choice
+Max Liberal X
+Offer Choice X
 
 Fascists:
-Max Fascists
+Max Fascists X
 
 CHANCELLOR_CARDS
 Liberal:
-Always Liberal
+Always Liberal X
 
 Fascists:
-Always Fascists
+Always Fascists X
 
 Hitler:
-Act Liberal
-Act Fascist
+Act Liberal (Just pass liberal function) X
+Act Fascist (Just pass fascist function) X
 
 VOTE
 Liberal:
@@ -32,6 +32,9 @@ Prob >.5 Vote No
 VOTE_RESULTS
 Pass
 
+
+ANALYZE_REVEALED_CARD
+General Function
 
 ANALYZE_REVEALED_CARD
 General Function
