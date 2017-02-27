@@ -26,8 +26,8 @@ def game(num_players):
             vote_passed = vote(players, president, chancellor)
 
         if vote_passed:              # if loop terminated in a yay vote
-            if 4 <= chancellor <= 5 and chancellor.role is Role.HITLER:
-                winner = 'fascists'
+            if 4 <= board.fascist_board <= 5 and chancellor.role is Role.HITLER:
+                winner = 'BoardStates.FASCIST_WIN'
             next_policy = chancellor.chancellor_pick(president.president_pick(deck.draw_hand()))
         else:                       # if loop terminated due to 3 nay votes
             next_policy = deck.draw()

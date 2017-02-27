@@ -1,0 +1,37 @@
+CHOOSE_PRES
+Liberal:
+Choose Fascist
+
+Fascists:
+Choose Liberal
+Choose Liberal
+
+PRESIDENT_CARDS
+Liberal:
+Max Liberal
+Offer Choice
+
+Fascists:
+Max Fascists
+
+CHANCELLOR_CARDS
+Liberal:
+Always Liberal
+
+Fascists:
+Always Fascists
+
+Hitler:
+Act Liberal
+Act Fascist
+
+VOTE
+Liberal:
+Prob >.5 Vote No
+
+VOTE_RESULTS
+Pass
+
+
+ANALYZE_REVEALED_CARD
+General Function

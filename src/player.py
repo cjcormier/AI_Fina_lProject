@@ -8,7 +8,6 @@ class Player:
         self.name = name
         self.role = None
         self.strategy = None
-        self.history = []
         self.fascists = []
         self.hitler = None
         self.num_fascists = num_fascists
@@ -77,7 +76,3 @@ class Player:
 
     def analyze_revealed_card(self, chancellor, president, card):
         self.strategies[Strategy_Types.ANALYZE_REVEALED_CARD](self, chancellor, president, card)
-
-    # uneaded?
-    def new_info(self, info):
-        self.history.append(info)
