@@ -1,6 +1,6 @@
 CHOOSE_PRES
 Liberal:
-Choose Fascist
+Choose Liberal X
 
 Fascists:
 Choose Liberal X
@@ -27,9 +27,10 @@ Act Fascist (Just pass fascist function) X
 
 VOTE
 Liberal:
-Prob >.5 Vote No
+Compare to base line
 
 Fascist:
+Vote no if not fascist
 
 
 VOTE_RESULTS

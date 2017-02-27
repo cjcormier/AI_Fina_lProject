@@ -44,6 +44,19 @@ def choose_fascist_chancellor(player, valid_players):
     return random.choice(fascist_players)
 
 
+def f_choose_liberal_chancellor(player, valid_players):
+    probabilities = player.probabilities
+    name = player.name
+    liberal_players = []
+    for valid_player in valid_players:
+        if valid_player != name:
+            if probabilities[valid_player][0] != 1:
+                liberal_players.append(valid_player)
+    if len(liberal_players) == 0:
+        return choose_liberal_chancellor(player, valid_players)
+    return random.choice(liberal_players)
+
+
 def choose_not_hitler_chancellor(player, valid_players):
     probabilities = player.probabilities
     fascist_players = []
@@ -66,7 +79,9 @@ def president_choose_liberal_cards(player, chancellor, cards):
 def president_give_choice(player, chancellor, cards):
     if Cards.LIBERAL in cards:
         if Cards.FASCIST in cards:
-            return random.shuffle([Cards.LIBERAL, Cards.FASCIST])
+            cards = [Cards.LIBERAL, Cards.FASCIST]
+            random.shuffle(cards)
+            return cards
     cards.pop()
     return cards
 
@@ -116,19 +131,31 @@ def chancellor_choose_fascist_cards(player, president, cards, deck):
         return Cards.LIBERAL
 
 
-def standard_vote(player, president, chancellor):
-    # TODO change to adapt to different player counts
+def standard_liberal_vote(player, president, chancellor):
     probabilities = player.probabilities
     president_prob = probabilities[president][0]
     chancellor_prob = probabilities[chancellor][0]
 
-    if president is player.name and player.probabilities[player.name] == 1:
-        president_prob = 0
+    unknown_fascists = player.num_fascists - len(player.fascists)
+    unknown_players = len(set(probabilities.keys())-set(player.fascists)-{player.name})
+    default_individual_prob = unknown_fascists/unknown_players
+    limit_prob = 2*default_individual_prob-default_individual_prob**2
 
-    if chancellor is player.name and player.probabilities[player.name] == 1:
-        chancellor_prob = 0
+    # if president == player.name:
+    #     president_prob = 0
+    #     limit_prob = default_individual_prob
+    #
+    # if chancellor == player.name:
+    #     chancellor_prob = 0
+    #     limit_prob = default_individual_prob
 
-    return president_prob+chancellor_prob-(president_prob*chancellor_prob) < .7
+    return president_prob+chancellor_prob-(president_prob*chancellor_prob) < round(limit_prob+.005, 2)
+
+def standard_fascist_vote(player, president, chancellor):
+    fascist_pres = president in player.fascists
+    chancellor_pres = chancellor in player.fascists
+
+    return fascist_pres or chancellor
 
 
 def analyze_revealed_card(player, president, chancellor, card, deck):
@@ -144,17 +171,18 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
     prob_cf = player.probabilities[president][0]
     prob_pf = player.probabilities[chancellor][0]
 
-    prob_f = (prob_fff + prob_ffl*(prob_cf+prob_pf) + prob_fll*prob_cf*prob_pf)
+    prob_f = (prob_fff + prob_ffl*(prob_cf+prob_pf-prob_cf*prob_pf) + prob_fll*prob_cf*prob_pf)
+    # prob_f = (prob_fff + prob_ffl*(prob_cf+prob_pf) + prob_fll*prob_cf*prob_pf)
 
-    prob_president = (prob_fff*prob_pf + prob_ffl*(prob_cf+prob_pf) + prob_fll*prob_cf*prob_pf)
+    prob_president = (prob_fff*prob_pf + prob_ffl*(prob_pf) + prob_fll*prob_cf*prob_pf)
     prob_president /= prob_f
-    player.set_prob(president, prob_president)
+    player.set_prob(president, prob_president**.5)
 
-    prob_chancellor = (prob_fff*prob_pf + prob_ffl*(prob_cf+prob_pf) + prob_fll*prob_cf*prob_pf)
+    prob_chancellor = (prob_fff*prob_cf + prob_ffl*(prob_cf) + prob_fll*prob_cf*prob_pf)
     prob_chancellor /= prob_f
-    player.set_prob(chancellor, prob_chancellor)
+    player.set_prob(chancellor, prob_chancellor**.5)
 
-    message = "Player {} analysed new fascist policy enacted by president {} and chancellor {}"
+    message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
     print(message.format(player.name, president, chancellor))
     player.print_probs()
 

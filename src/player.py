@@ -57,6 +57,8 @@ class Player:
                 self.probabilities[player] = (fascist_prob, hitler_prob)
 
     def set_prob(self, player, new_prob, new_hitler_prob=None):
+        if new_prob > 1:
+            pass
         new_prob = clamp(new_prob, 0, 1)
         if new_hitler_prob is None:
             new_hitler_prob = self.probabilities[player][1]
