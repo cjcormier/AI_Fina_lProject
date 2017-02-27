@@ -28,10 +28,6 @@ def choose_liberal_chancellor(player, valid_players):
                 players = [curr_player]
             elif prob == min_prob:
                 players.append(curr_player)
-            if prob > 1 or prob < 0:
-                pass
-    if len(players) == 0:
-        pass
     return random.choice(players)
 
 
