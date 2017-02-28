@@ -1,6 +1,8 @@
-from enum import Enum, unique
-from src.cards import Cards
 import random
+from enum import Enum, unique
+from math import pow
+
+from src.cards import Cards
 from src.roles import Role
 
 
@@ -151,6 +153,7 @@ def standard_liberal_vote(player, president, chancellor):
 
     return president_prob+chancellor_prob-(president_prob*chancellor_prob) < round(limit_prob+.005, 2)
 
+
 def standard_fascist_vote(player, president, chancellor):
     fascist_pres = president in player.fascists
     chancellor_pres = chancellor in player.fascists
@@ -161,6 +164,7 @@ def standard_fascist_vote(player, president, chancellor):
 def analyze_revealed_card(player, president, chancellor, card, deck):
     if card is Cards.LIBERAL:
         return
+    default_prob_val = default_prob(player)
     l_remaining = deck[0]
     f_remaining = deck[1]
     tot_remaining = l_remaining + f_remaining
@@ -174,17 +178,44 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
     prob_f = (prob_fff + prob_ffl*(prob_cf+prob_pf-prob_cf*prob_pf) + prob_fll*prob_cf*prob_pf)
     # prob_f = (prob_fff + prob_ffl*(prob_cf+prob_pf) + prob_fll*prob_cf*prob_pf)
 
-    prob_president = (prob_fff*prob_pf + prob_ffl*(prob_pf) + prob_fll*prob_cf*prob_pf)
+    prob_president = prob_fff*prob_pf + prob_ffl*prob_pf + prob_fll*prob_cf*prob_pf
     prob_president /= prob_f
-    player.set_prob(president, prob_president**.5)
+    player.set_prob(president, adjust(prob_president, default_prob_val))
 
-    prob_chancellor = (prob_fff*prob_cf + prob_ffl*(prob_cf) + prob_fll*prob_cf*prob_pf)
+    prob_chancellor = prob_fff*prob_cf + prob_ffl*prob_cf + prob_fll*prob_cf*prob_pf
     prob_chancellor /= prob_f
-    player.set_prob(chancellor, prob_chancellor**.5)
+    player.set_prob(chancellor, adjust(prob_chancellor, default_prob_val))
 
     message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
     print(message.format(player.name, president, chancellor))
     player.print_probs()
+
+adjust_factor = 2
+
+
+def set_adjust_factor(new_adjust):
+    global adjust_factor
+    adjust_factor = new_adjust
+
+
+def default_prob(player):
+    probabilities = player.probabilities
+    unknown_fascists = player.num_fascists - len(player.fascists)
+    unknown_players = len(set(probabilities.keys())-set(player.fascists)-{player.name})
+    return unknown_fascists/unknown_players
+
+
+def adjust(prob, default_prob_val):
+    global adjust_factor
+    if default_prob_val == 0 or prob == default_prob_val:
+        return prob
+
+    pos_prob_range = 1 - default_prob_val
+
+    if prob > default_prob_val:
+        return pow((prob - default_prob_val) / pos_prob_range, adjust_factor) * pos_prob_range + default_prob_val
+    else:
+        return default_prob_val - pow((default_prob_val - prob) / default_prob_val, adjust_factor) * default_prob_val
 
 
 def analyze_chancellor_card(player, chancellor, pres_cards, chanc_card):

@@ -1,11 +1,13 @@
-from src.game import assign_roles, game
-from src.strategies import *
 from set_strats import *
+from src.game import assign_roles, game
+from src.strategies import set_adjust_factor
+from src.roles import Role
 
 
 def main():
 
     num_players = 8
+    set_adjust_factor(1)
     players = assign_roles(num_players)
     for player in players:
         if player.role is Role.LIBERAL:
