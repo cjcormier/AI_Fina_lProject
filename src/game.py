@@ -64,7 +64,8 @@ def game(num_players, players, allow_shoots=False):
 
             if 4 <= board.fascist_board <= 5 and next_policy is Cards.FASCIST and allow_shoots:
                 winner = shoot(president, players)
-                continue
+                if winner is not BoardStates.NORMAL:
+                    continue
 
         else:                       # if loop terminated due to 3 nay votes
             next_policy = deck.draw()
