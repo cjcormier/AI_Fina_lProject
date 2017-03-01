@@ -74,7 +74,6 @@ class Player:
             if curr_player not in [self.name, player] and curr_player not in self.fascists:
                 curr_prob = clamp(self.probabilities[curr_player][0] - change_prob, 0 ,1)
                 self.probabilities[curr_player] = (curr_prob, new_hitler_prob)
-        self.print_probs()
 
     def print_probs(self):
         print('Player {} Probabilities:'.format(self.name))
@@ -114,6 +113,38 @@ class Player:
     def analyze_chancellor_card(self, chancellor, pres_card, chanc_card):
         self.strategies[StrategyTypes.ANALYZE_CHANCELLOR_CARD](self, chancellor, pres_card,
                                                                chanc_card)
+
+
+    def shoot(self):
+        return self.strategies[StrategyTypes.SHOOT](self)
+
+    def remove_player(self, player):
+        del self.probabilities[player]
+        if player in self.fascists:
+            self.fascists.remove(player)
+
+    def max_fascist(self):
+        probabilities = self.probabilities
+        max = 0
+        max_player = None
+        for player in probabilities:
+            prob = probabilities[player][0]
+            if prob > max:
+                max_player = player
+                max = prob
+        return max_player
+
+
+    def min_fascist(self):
+        probabilities = self.probabilities
+        min = 1
+        min_player = None
+        for player in probabilities:
+            prob = probabilities[player][0]
+            if prob < min:
+                min_player = player
+                min = prob
+        return min_player
 
 
 def clamp(n, minn, maxn):

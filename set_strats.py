@@ -7,6 +7,7 @@ def set_liberal_strats(player):
     player.set_strategy(StrategyTypes.VOTE, standard_liberal_vote)
     player.set_strategy(StrategyTypes.ANALYZE_REVEALED_CARD, analyze_revealed_card)
     player.set_strategy(StrategyTypes.ANALYZE_CHANCELLOR_CARD, analyze_chancellor_card)
+    player.set_strategy(StrategyTypes.SHOOT, liberal_shoot)
 
 
 def set_fascist_strats(player):
@@ -16,6 +17,7 @@ def set_fascist_strats(player):
     player.set_strategy(StrategyTypes.VOTE, standard_fascist_vote)
     player.set_strategy(StrategyTypes.ANALYZE_REVEALED_CARD, pass_strat)
     player.set_strategy(StrategyTypes.ANALYZE_CHANCELLOR_CARD, analyze_chancellor_card)
+    player.set_strategy(StrategyTypes.SHOOT, fascist_shoot)
 
 
 def set_hitler_strats(player):
@@ -25,3 +27,4 @@ def set_hitler_strats(player):
     player.set_strategy(StrategyTypes.VOTE, standard_liberal_vote)
     player.set_strategy(StrategyTypes.ANALYZE_REVEALED_CARD, analyze_revealed_card)
     player.set_strategy(StrategyTypes.ANALYZE_CHANCELLOR_CARD, analyze_chancellor_card)
+    player.set_strategy(StrategyTypes.SHOOT, hitler_shoot)

@@ -6,6 +6,8 @@ class BoardStates(Enum):
     NORMAL = 0
     FASCIST_WIN = 1
     LIBERAL_WIN = 2
+    HITLER_CHANCELLOR = 3
+    HITLER_SHOT = 4
 
 
 class Board:

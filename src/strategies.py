@@ -15,6 +15,7 @@ class StrategyTypes(Enum):
     VOTE_RESULTS = 5
     ANALYZE_REVEALED_CARD = 6
     ANALYZE_CHANCELLOR_CARD = 7
+    SHOOT = 8
 
 
 def choose_liberal_chancellor(player, valid_players):
@@ -151,7 +152,7 @@ def standard_liberal_vote(player, president, chancellor):
     #     chancellor_prob = 0
     #     limit_prob = default_individual_prob
 
-    return president_prob+chancellor_prob-(president_prob*chancellor_prob) < round(limit_prob+.005, 2)
+    return president_prob+chancellor_prob-(president_prob*chancellor_prob) < round(limit_prob+.01, 2)
 
 
 def standard_fascist_vote(player, president, chancellor):
@@ -162,33 +163,59 @@ def standard_fascist_vote(player, president, chancellor):
 
 
 def analyze_revealed_card(player, president, chancellor, card, deck):
-    if card is Cards.LIBERAL:
-        return
-    default_prob_val = default_prob(player)
     l_remaining = deck[0]
     f_remaining = deck[1]
     tot_remaining = l_remaining + f_remaining
-
-    prob_fff = multi_3(f_remaining)/multi_3(tot_remaining)
-    prob_ffl = 3*l_remaining*multi_2(f_remaining)/multi_3(tot_remaining)
-    prob_fll = 3*f_remaining*multi_2(l_remaining)/multi_3(tot_remaining)
+    tot_remaining_3 = multi_3(tot_remaining)
+    prob_fff = multi_3(f_remaining)/tot_remaining_3
+    prob_ffl = 3*l_remaining*multi_2(f_remaining)/tot_remaining_3
+    prob_fll = 3*f_remaining*multi_2(l_remaining)/tot_remaining_3
+    prob_lll = multi_3(l_remaining)/tot_remaining_3
     prob_cf = player.probabilities[president][0]
     prob_pf = player.probabilities[chancellor][0]
+    prob_cl = 1 - prob_cf
+    prob_pl = 1 - prob_pf
+    prob_president = 0
+    prob_chancellor = 0
+    prev_pres = 0
+    prev_chanc = 0
+    if card is Cards.LIBERAL:
+        prev_pres = prob_pl
+        prev_chanc = prob_cl
+        if prob_lll == 0:
+            if prob_pl == 0:
+                prob_chancellor = 1
+                prob_president = 0
+            elif prob_cl == 0:
+                prob_president = 1
+                prob_chancellor = 0
+            elif prob_cf == 0 and prob_pl == 0:
+                prob_president = 0
+                prob_chancellor = 0
+        else:
+            prob_l = prob_lll + prob_fll*(prob_cl+prob_pl-prob_cl*prob_pl) + prob_ffl*prob_cl*prob_pl
+            prob_president = (prob_lll + prob_fll + prob_ffl*prob_cl)*prob_pl
+            prob_president /= prob_l
+            prob_president = 1-prob_president
+            prob_chancellor = (prob_lll + prob_fll + prob_ffl*prob_pl)*prob_cl
+            prob_chancellor /= prob_l
+            prob_chancellor = 1-prob_chancellor
+    else:
+        prev_pres = prob_pl
+        prev_chanc = prob_cl
+        prob_f = prob_fff + prob_ffl*(prob_cf+prob_pf-prob_cf*prob_pf) + prob_fll*prob_cf*prob_pf
+        prob_president = (prob_fff+ prob_ffl+ prob_fll*prob_cf)*prob_pf
+        prob_president /= prob_f
 
-    prob_f = (prob_fff + prob_ffl*(prob_cf+prob_pf-prob_cf*prob_pf) + prob_fll*prob_cf*prob_pf)
-    # prob_f = (prob_fff + prob_ffl*(prob_cf+prob_pf) + prob_fll*prob_cf*prob_pf)
+        prob_chancellor = (prob_fff+ prob_ffl+ prob_fll*prob_pf)*prob_cf
+        prob_chancellor /= prob_f
 
-    prob_president = prob_fff*prob_pf + prob_ffl*prob_pf + prob_fll*prob_cf*prob_pf
-    prob_president /= prob_f
-    player.set_prob(president, adjust(prob_president, default_prob_val))
+    player.set_prob(president, adjust(prob_president, prev_pres))
+    player.set_prob(chancellor, adjust(prob_chancellor, prev_chanc))
 
-    prob_chancellor = prob_fff*prob_cf + prob_ffl*prob_cf + prob_fll*prob_cf*prob_pf
-    prob_chancellor /= prob_f
-    player.set_prob(chancellor, adjust(prob_chancellor, default_prob_val))
-
-    message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
-    print(message.format(player.name, president, chancellor))
-    player.print_probs()
+    # message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
+    # print(message.format(player.name, president, chancellor))
+    # player.print_probs()
 
 adjust_factor = 2
 
@@ -205,17 +232,21 @@ def default_prob(player):
     return unknown_fascists/unknown_players
 
 
-def adjust(prob, default_prob_val):
+def adjust(prob, old_prob):
+    if prob > 1:
+        prob = 1
+    elif prob < 0:
+        prob = 0
     global adjust_factor
-    if default_prob_val == 0 or prob == default_prob_val:
+    if old_prob*prob == 0 or prob == old_prob:
         return prob
 
-    pos_prob_range = 1 - default_prob_val
+    pos_prob_range = 1 - old_prob
 
-    if prob > default_prob_val:
-        return pow((prob - default_prob_val) / pos_prob_range, adjust_factor) * pos_prob_range + default_prob_val
+    if prob > old_prob:
+        return pow((prob - old_prob) / pos_prob_range, adjust_factor) * pos_prob_range + old_prob
     else:
-        return default_prob_val - pow((default_prob_val - prob) / default_prob_val, adjust_factor) * default_prob_val
+        return pow((prob) / old_prob, adjust_factor) * old_prob
 
 
 def analyze_chancellor_card(player, chancellor, pres_cards, chanc_card):
@@ -231,6 +262,19 @@ def analyze_chancellor_card(player, chancellor, pres_cards, chanc_card):
 
         player.known_roles = known_roles
         player.set_prob(chancellor, 1, hitler_prob)
+
+
+def liberal_shoot(player):
+    return player.max_fascist()
+
+
+def fascist_shoot(player):
+    liberal_players = [x for x in player.probabilities.keys() if x not in player.fascists and x is not player.hitler]
+    return random.choice(liberal_players)
+
+
+def hitler_shoot(player):
+    return player.min_fascist()
 
 
 def pass_strat(*args):
