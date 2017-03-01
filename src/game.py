@@ -3,6 +3,7 @@ from src.deck import *
 from src.player import *
 from src.board import *
 from src.roles import Role
+from src.logging import Log
 
 
 def game(num_players, players, allow_shoots=False):
@@ -28,7 +29,7 @@ def game(num_players, players, allow_shoots=False):
     # until someone wins loop this
     while winner is BoardStates.NORMAL:
         rounds += 1
-        print('\n------------------------\n\nNew Round')
+        Log.log('\n------------------------\n\nNew Round')
         vote_passed = False
         rounds_of_voting = 0
         while not vote_passed and rounds_of_voting < 3:  # until the vote passes or 3 votes fail
@@ -40,19 +41,20 @@ def game(num_players, players, allow_shoots=False):
             president, chancellor = new_gov(players, president_name, prev_pres, chancellor)
 
             message = "Voting on new government. President: {} Chancellor: {} ({},{})"
-            print(message.format(president_name, chancellor.name, president.role, chancellor.role))
+            Log.log(message.format(president_name, chancellor.name, president.role,
+                                   chancellor.role))
             vote_passed = vote(players, president, chancellor)
             if not vote_passed:
-                print('Vote Failed, number of consecutive failed votes:', rounds_of_voting)
+                Log.log('Vote Failed, number of consecutive failed votes:', rounds_of_voting)
 
         if vote_passed:              # if loop terminated in a yay vote
             l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc = \
                 record_gov(l_pres, f_pres, h_pres, l_chanc,
                            f_chanc, h_chanc, president, chancellor)
             prev_pres = president_name
-            print("Vote Passed")
+            Log.log("Vote Passed")
             if 4 <= board.fascist_board <= 5 and chancellor.role is Role.HITLER:
-                print('Chancellor {} is Hitler, fascists win!'.format(chancellor.name))
+                Log.log('Chancellor {} is Hitler, fascists win!'.format(chancellor.name))
                 winner = BoardStates.HITLER_CHANCELLOR
                 continue
 
@@ -70,14 +72,14 @@ def game(num_players, players, allow_shoots=False):
         else:                       # if loop terminated due to 3 nay votes
             next_policy = deck.draw()
             anarchies += 1
-            print('Anarchy!!!!!')
+            Log.log('Anarchy!!!!!')
 
-        print('Next Policy:', next_policy)
+        Log.log('Next Policy:', next_policy)
         winner = board.increment_board(next_policy)
-    message = '\nOut of {} rounds, there were {} liberal presidents, {} fascist presidents and ' \
-              '{} hitler presidents\n {} liberal chancellors, {} fascist chancellors and {} ' \
-              'hitler chancellors.'
-    print(message.format(rounds, l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc))
+    message = '\n{} rounds:\n{} liberal presidents, {} fascist presidents and {} hitler ' \
+              'presidents\n{} liberal chancellors, {} fascist chancellors and {} hitler ' \
+              'chancellors.'
+    Log.log(message.format(rounds, l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc))
     return winner, board.fascist_board, board.liberal_board, anarchies
 
 
@@ -116,14 +118,14 @@ def assign_roles(num_players):
 
 def shoot(president, players):
     player_shot = president.shoot()
-    print('President {} shot player {}.'.format(president.name, player_shot))
+    Log.log('President {} shot player {}.'.format(president.name, player_shot))
     if players[player_shot].role is Role.HITLER:
-        print('Player {} is Hitler, liberals win!'.format(player_shot))
+        Log.log('Player {} is Hitler, liberals win!'.format(player_shot))
         return BoardStates.HITLER_SHOT
     else:
         message = 'Player {0} is not Hitler. ({0} was {1} instead and {2} was {3}.)'
-        print(message.format(player_shot, players[player_shot].role,
-                             president.name, president.role))
+        Log.log(message.format(player_shot, players[player_shot].role,
+                               president.name, president.role))
     del players[player_shot]
     for name, player in players.items():
         player.remove_player(player_shot)
@@ -132,7 +134,7 @@ def shoot(president, players):
 
 def print_roles(players):
     for name, player in players.items():
-        print("Player {} is {}".format(player.name, player.role))
+        Log.log("Player {} is {}".format(player.name, player.role))
         # player.print_probs()
 
 
@@ -143,8 +145,8 @@ def choose_policy(president, chancellor, deck):
     president_pick = president.president_pick(chancellor.name, list(policies))
     chancellor_pick = chancellor.chancellor_pick(president.name, list(president_pick), remaining)
 
-    print('\nDrawn Cards:{}\nPres Pick: {}, Canc Pick: {}\n'.format(policies, president_pick,
-                                                                    chancellor_pick))
+    Log.log('\nDrawn Cards:{}\nPres Pick: {}, Canc Pick: {}\n'.format(policies, president_pick,
+                                                                      chancellor_pick))
 
     president.analyze_chancellor_card(chancellor.name, president_pick, chancellor_pick)
     deck.discard(policies, chancellor_pick)
@@ -154,7 +156,7 @@ def choose_policy(president, chancellor, deck):
 def new_gov(players, pres, prev_pres, chancellor):
     chancellor_name = chancellor.name if chancellor is not None else -1
     names = [x for x in players.keys() if x is not prev_pres and x is not chancellor_name]
-    print('Valid chancellors: {}'.format(names))
+    Log.log('Valid chancellors: {}'.format(names))
     president = players[pres]
     chancellor_name = president.choose_chancellor(names)  # limit valid players
     chancellor = players[chancellor_name]
@@ -173,8 +175,8 @@ def vote(players, president, chancellor):
         else:
             nay.append(player.name)
 
-    print('Votes in favor: {}, Votes against: {}  ({},{})'.format(ja, nay, votes,
-                                                                  len(players)-votes))
+    Log.log('Votes in favor: {}, Votes against: {}  ({},{})'.format(ja, nay, votes,
+                                                                    len(players)-votes))
     return votes >= (len(players) / 2)
 
 

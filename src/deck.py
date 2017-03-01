@@ -1,5 +1,6 @@
 from random import randint
 from src.cards import Cards
+from src.logging import Log
 
 
 class Deck:
@@ -15,10 +16,10 @@ class Deck:
             self.facDeck += self.facDisc
             self.libDisc = 0
             self.facDisc = 0
-            print('Shuffling Deck')
+            Log.log('Shuffling Deck')
 
         card = randint(0, self.libDeck + self.facDeck - 1)
-        # print("Liberal left: {}, Fascist left: {}".format(self.libDeck, self.facDeck))
+        # Log.log("Liberal left: {}, Fascist left: {}".format(self.libDeck, self.facDeck))
         if card < self.libDeck:
             self.libDeck -= 1
             card = Cards.LIBERAL

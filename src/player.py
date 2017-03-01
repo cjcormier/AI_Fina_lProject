@@ -1,5 +1,5 @@
-from src.roles import Role
 from src.strategies import *
+from src.logging import Log
 
 
 class Player:
@@ -57,8 +57,6 @@ class Player:
                 self.probabilities[player] = (fascist_prob, hitler_prob)
 
     def set_prob(self, player, new_prob, new_hitler_prob=None):
-        if new_prob > 1:
-            pass
         new_prob = clamp(new_prob, 0, 1)
         if new_hitler_prob is None:
             new_hitler_prob = self.probabilities[player][1]
@@ -72,17 +70,17 @@ class Player:
         self.probabilities[player] = (new_prob, new_hitler_prob)
         for curr_player in self.probabilities:
             if curr_player not in [self.name, player] and curr_player not in self.fascists:
-                curr_prob = clamp(self.probabilities[curr_player][0] - change_prob, 0 ,1)
+                curr_prob = clamp(self.probabilities[curr_player][0] - change_prob, 0, 1)
                 self.probabilities[curr_player] = (curr_prob, new_hitler_prob)
 
     def print_probs(self):
-        print('Player {} Probabilities:'.format(self.name))
+        Log.log('Player {} Probabilities:'.format(self.name))
         prob_fascist, prob_hitler = (0, 0)
         for n in self.probabilities:
-            print('\t{}: {}'.format(n, self.probabilities[n]))
-            prob_fascist, prob_hitler = prob_fascist+self.probabilities[n][0], \
-                                        prob_hitler+self.probabilities[n][1]
-        print('Total: ({}, {})'.format(prob_fascist, prob_hitler))
+            Log.log('\t{}: {}'.format(n, self.probabilities[n]))
+            prob_fascist = prob_fascist+self.probabilities[n][0]
+            prob_hitler = prob_hitler+self.probabilities[n][1]
+        Log.log('Total: ({}, {})'.format(prob_fascist, prob_hitler))
 
     def set_strategy(self, strategy_type, strategy):
         self.strategies[strategy_type] = strategy
@@ -124,25 +122,24 @@ class Player:
 
     def max_fascist(self):
         probabilities = self.probabilities
-        max = 0
+        max_prob = 0
         max_player = None
         for player in probabilities:
             prob = probabilities[player][0]
-            if prob > max:
+            if prob > max_prob:
                 max_player = player
-                max = prob
+                max_prob = prob
         return max_player
-
 
     def min_fascist(self):
         probabilities = self.probabilities
-        min = 1
+        min_prob = 1
         min_player = None
         for player in probabilities:
             prob = probabilities[player][0]
-            if prob < min:
+            if prob < min_prob:
                 min_player = player
-                min = prob
+                min_prob = prob
         return min_player
 
 

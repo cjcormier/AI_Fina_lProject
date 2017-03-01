@@ -1,11 +1,9 @@
-import os
-import sys
-
 from set_strats import *
 from src.roles import Role
 from src.board import BoardStates
 from src.game import assign_roles, game
 from src.strategies import set_adjust_factor
+from src.logging import Log
 
 
 def main():
@@ -33,13 +31,10 @@ def main():
                 elif player.role is Role.HITLER:
                     set_hitler_strats(player)
 
-            f = open(os.devnull, 'w')
-            s = sys.stdout
-            sys.stdout = f
+            Log.allow_logging(False)
             winner, fascist_board, liberal_board, anarchies = \
                 game(num_players, players, allow_shoots=True)
-            sys.stdout = s
-            f.close()
+            Log.allow_logging(True)
 
             total_anarchies += anarchies
             f_policies += fascist_board
@@ -57,8 +52,9 @@ def main():
         message = 'Adjust Factor: {7}, Liberal Wins: {0}/{2}, Fascist Wins {1}/{2}, ' \
                   'Hitler Chancellor Wins {8}/{2}, Hitler Shot: {9}/{2}, ' \
                   'Liberal Policies: {3}/{5}, Fascist Policies {4}/{5}, Average Anarchies: {6}'
-        print(message.format(l_wins, f_wins, l_wins+f_wins, l_policies, f_policies,
-                             l_policies+f_policies, total_anarchies/games, n/10, h_chanc, h_shot))
+        Log.log(message.format(l_wins, f_wins, l_wins+f_wins, l_policies, f_policies,
+                               l_policies + f_policies, total_anarchies/games,
+                               n/10, h_chanc, h_shot))
 
 
 if __name__ == '__main__':

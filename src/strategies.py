@@ -4,6 +4,7 @@ from math import pow
 
 from src.cards import Cards
 from src.roles import Role
+from src.logging import Log
 
 
 @unique
@@ -114,7 +115,7 @@ def chancellor_choose_liberal_cards(player, president, cards, deck):
 
         player.set_prob(president, new_prob)
         message = 'Player {} is adjusting prob for player {} due to receiving 2 Fascist Cards'
-        print(message.format(player.name, president))
+        Log.log(message.format(player.name, president))
         player.print_probs()
         return Cards.FASCIST
 
@@ -214,7 +215,7 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
     player.set_prob(chancellor, adjust(prob_chancellor, prev_chanc))
 
     # message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
-    # print(message.format(player.name, president, chancellor))
+    # Log.log(message.format(player.name, president, chancellor))
     # player.print_probs()
 
 adjust_factor = 2
@@ -251,7 +252,7 @@ def adjust(prob, old_prob):
 
 def analyze_chancellor_card(player, chancellor, pres_cards, chanc_card):
     if chanc_card == Cards.FASCIST and Cards.LIBERAL in pres_cards:
-        print("Player {} thinks chancellor {} is a Fascist.".format(player.name, chancellor))
+        Log.log("Player {} thinks chancellor {} is a Fascist.".format(player.name, chancellor))
         known_roles = {Role.FASCIST: player.fascists, Role.HITLER: player.hitler}
         if chancellor not in known_roles[Role.FASCIST]:
             known_roles[Role.FASCIST].append(chancellor)
