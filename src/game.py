@@ -8,7 +8,7 @@ from src.roles import Role
 def game(num_players, players, allow_shoots=False):
     board = Board()
     deck = Deck(6, 11)
-    winner = None
+    winner = BoardStates.NORMAL
 
     prev_pres = -1
     president_name = -1
@@ -26,7 +26,7 @@ def game(num_players, players, allow_shoots=False):
     print_roles(players)
 
     # until someone wins loop this
-    while winner is not BoardStates.FASCIST_WIN and winner is not BoardStates.LIBERAL_WIN:
+    while winner is BoardStates.NORMAL:
         rounds += 1
         print('\n------------------------\n\nNew Round')
         vote_passed = False
@@ -47,20 +47,24 @@ def game(num_players, players, allow_shoots=False):
 
         if vote_passed:              # if loop terminated in a yay vote
             l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc = \
-                record_gov(l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc, president, chancellor)
+                record_gov(l_pres, f_pres, h_pres, l_chanc,
+                           f_chanc, h_chanc, president, chancellor)
             prev_pres = president_name
             print("Vote Passed")
             if 4 <= board.fascist_board <= 5 and chancellor.role is Role.HITLER:
-                    print('Chancellor {} is Hitler, fascists win!'.format(chancellor.name))
-                    winner = BoardStates.HITLER_CHANCELLOR
+                print('Chancellor {} is Hitler, fascists win!'.format(chancellor.name))
+                winner = BoardStates.HITLER_CHANCELLOR
+                continue
 
             next_policy = choose_policy(president, chancellor, deck)
 
             for name, player in players.items():
-                player.analyze_revealed_card(president.name, chancellor.name, next_policy, deck.total_remaining())
+                player.analyze_revealed_card(president.name, chancellor.name,
+                                             next_policy, deck.total_remaining())
 
             if 4 <= board.fascist_board <= 5 and next_policy is Cards.FASCIST and allow_shoots:
                 winner = shoot(president, players)
+                continue
 
         else:                       # if loop terminated due to 3 nay votes
             next_policy = deck.draw()
@@ -69,8 +73,9 @@ def game(num_players, players, allow_shoots=False):
 
         print('Next Policy:', next_policy)
         winner = board.increment_board(next_policy)
-    message = '\nOut of {} round, there were {} liberal presidents, {} fascist presidents and {} hitler presidents, ' \
-              '{} liberal chancellors, {} fascist chancellors and {} hitler chancellors'
+    message = '\nOut of {} rounds, there were {} liberal presidents, {} fascist presidents and ' \
+              '{} hitler presidents\n {} liberal chancellors, {} fascist chancellors and {} ' \
+              'hitler chancellors.'
     print(message.format(rounds, l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc))
     return winner, board.fascist_board, board.liberal_board, anarchies
 
@@ -115,8 +120,9 @@ def shoot(president, players):
         print('Player {} is Hitler, liberals win!'.format(player_shot))
         return BoardStates.HITLER_SHOT
     else:
-        message = 'Player {0} is not Hitler. ({0} was {1} instead and {2} was {3}.'
-        print(message.format(player_shot, players[player_shot].role, president.name, president.role))
+        message = 'Player {0} is not Hitler. ({0} was {1} instead and {2} was {3}.)'
+        print(message.format(player_shot, players[player_shot].role,
+                             president.name, president.role))
     del players[player_shot]
     for name, player in players.items():
         player.remove_player(player_shot)
@@ -169,6 +175,7 @@ def vote(players, president, chancellor):
     print('Votes in favor: {}, Votes against: {}  ({},{})'.format(ja, nay, votes,
                                                                   len(players)-votes))
     return votes >= (len(players) / 2)
+
 
 def record_gov(l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc, president, chancellor):
     if president.role is Role.LIBERAL:

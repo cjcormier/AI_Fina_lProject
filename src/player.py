@@ -114,7 +114,6 @@ class Player:
         self.strategies[StrategyTypes.ANALYZE_CHANCELLOR_CARD](self, chancellor, pres_card,
                                                                chanc_card)
 
-
     def shoot(self):
         return self.strategies[StrategyTypes.SHOOT](self)
 
