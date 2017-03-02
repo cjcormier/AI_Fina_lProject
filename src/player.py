@@ -26,22 +26,19 @@ class Player:
 
     def set_role(self, role, known_roles):
         self.role = role
-
         fascist_prob = self.num_fascists / (len(self.probabilities) - 1)
         hitler_prob = 1 / (len(self.probabilities) - 1)
-        self.init_prob(known_roles, fascist_prob, hitler_prob, (0, 0))
-        # if role is Role.FASCIST:
-        #     self.init_prob(known_roles, 0, 0, (1, 0))
-        # elif role is Role.LIBERAL:
-        #     fascist_prob = self.num_fascists / (len(self.probabilities)-1)
-        #     hitler_prob = 1 / (len(self.probabilities)-1)
-        #     self.init_prob(known_roles, fascist_prob, hitler_prob, (0, 0))
-        # elif role is Role.HITLER:
-        #     if len(self.probabilities) > 6:
-        #         fascist_prob = (self.num_fascists-1) / (len(self.probabilities)-1)
-        #         self.init_prob(known_roles, fascist_prob, 0, (1, 1))
-        #     else:
-        #         self.init_prob(known_roles, 0, 0, (1, 1))
+
+        if role is Role.FASCIST:
+            self.init_prob(known_roles, 0, 0, (1, 0))
+        elif role is Role.LIBERAL:
+            self.init_prob(known_roles, fascist_prob, hitler_prob, (0, 0))
+        elif role is Role.HITLER:
+            if len(self.probabilities) > 6:
+                fascist_prob = (self.num_fascists-1) / (len(self.probabilities)-1)
+                self.init_prob(known_roles, fascist_prob, 0, (1, 1))
+            else:
+                self.init_prob(known_roles, 0, 0, (1, 1))
 
     def init_prob(self, known_roles, fascist_prob, hitler_prob, self_prob):
         self.fascists = known_roles[Role.FASCIST]
@@ -57,17 +54,23 @@ class Player:
                 self.probabilities[player] = (fascist_prob, hitler_prob)
 
     def set_prob(self, player, new_prob, new_hitler_prob=None):
-        new_prob = clamp(new_prob, 0, 1)
-        if new_hitler_prob is None:
-            new_hitler_prob = self.probabilities[player][1]
-
         sub = 2
         if player in self.fascists:
             sub = 1
-        change_prob = new_prob - self.probabilities[player][0]
-        change_prob /= (len(self.probabilities) - len(self.fascists) - sub)
+        players = len(self.probabilities) - len(self.fascists) - sub
 
+        if new_hitler_prob is None:
+            new_hitler_prob = self.probabilities[player][1]
         self.probabilities[player] = (new_prob, new_hitler_prob)
+
+        if players == 0:
+            return
+
+        new_prob = clamp(new_prob, 0, 1)
+
+        change_prob = new_prob - self.probabilities[player][0]
+        change_prob /= players
+
         for curr_player in self.probabilities:
             if curr_player not in [self.name, player] and curr_player not in self.fascists:
                 curr_prob = clamp(self.probabilities[curr_player][0] - change_prob, 0, 1)
@@ -126,7 +129,7 @@ class Player:
         max_player = None
         for player in probabilities:
             prob = probabilities[player][0]
-            if prob > max_prob:
+            if prob >= max_prob:
                 max_player = player
                 max_prob = prob
         return max_player
@@ -137,7 +140,7 @@ class Player:
         min_player = None
         for player in probabilities:
             prob = probabilities[player][0]
-            if prob < min_prob:
+            if prob <= min_prob:
                 min_player = player
                 min_prob = prob
         return min_player
