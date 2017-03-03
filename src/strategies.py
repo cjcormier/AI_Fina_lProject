@@ -48,7 +48,7 @@ def choose_fascist_chancellor(player, valid_players):
     return random.choice(fascist_players)
 
 
-def f_choose_liberal_chancellor(player, valid_players):
+def h_choose_fascist_chancellor(player, valid_players):
     max_prob = 0
     players = []
     probabilities = player.probabilities

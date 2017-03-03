@@ -6,12 +6,12 @@ l_choose_chancellor = [
 
 f_choose_chancellor = [
     choose_fascist_chancellor,
-    f_choose_liberal_chancellor,
+    choose_liberal_chancellor,
     choose_not_hitler_chancellor
 ]
 
 h_choose_chancellor = [
-    f_choose_liberal_chancellor,
+    h_choose_fascist_chancellor,
     choose_liberal_chancellor
 ]
 
