@@ -8,8 +8,8 @@ from src.logging import Log
 
 def main():
     games = 1000
-    header = 'Players,Adjust factor,Games,Liberal wins,Fascist wins,HC wins,HS wins,L Policies,F Policies,' \
-             'Total Policies,Average Anarchies,FCC,HCC,LCPC,HCPC,HCCC,HV'
+    header = 'Players,Adjust factor,Games,Liberal wins,Fascist wins,HC wins,HS wins,L Policies,' \
+             'F Policies,Total Policies,Average Anarchies,FCC,HCC,LCPC,HCPC,HCCC,HV'
     message = '{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}'
 
     # for n in range(0, 31, 2):

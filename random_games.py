@@ -8,9 +8,14 @@ from src.logging import Log
 
 def main():
     games = 1000
-    # for num_players in range(5,11):
-    for num_players in [8]:
-        for n in range(0, 31, 1):
+
+    header = 'Players,Adjust factor,Games,Liberal wins,Fascist wins,HC wins,HS wins,L Policies,' \
+             'F Policies,Total Policies,Average Anarchies'
+    message = '{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}'
+    Log.log(header)
+    for num_players in range(5, 11):
+    # for num_players in [8]:
+        for n in range(0, 201, 5):
         # for n in [10]:
             f_wins = 0
             l_wins = 0
@@ -19,7 +24,7 @@ def main():
             h_shot = 0
             h_chanc = 0
             total_anarchies = 0
-            set_adjust_factor(n/10)
+            set_adjust_factor(n/100)
 
             for i in range(games):
                 players = assign_roles(num_players)
@@ -56,12 +61,9 @@ def main():
                 elif winner is BoardStates.HITLER_SHOT:
                     l_wins += 1
                     h_shot += 1
-            message = 'Adjust Factor: {7}, Liberal Wins: {0}/{2}, Fascist Wins {1}/{2}, ' \
-                      'Hitler Chancellor Wins {8}/{2}, Hitler Shot: {9}/{2}, ' \
-                      'Liberal Policies: {3}/{5}, Fascist Policies {4}/{5}, Average Anarchies: {6}'
-            Log.log(message.format(l_wins, f_wins, l_wins+f_wins, l_policies, f_policies,
-                                   l_policies + f_policies, total_anarchies/games,
-                                   n/10, h_chanc, h_shot))
+            Log.log(message.format(num_players, n / 100, games, l_wins, f_wins, h_chanc, h_shot,
+                                   l_policies, f_policies, l_policies + f_policies,
+                                   total_anarchies / games))
 
 
 if __name__ == '__main__':
