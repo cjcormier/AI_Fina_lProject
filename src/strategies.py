@@ -110,32 +110,16 @@ def chancellor_choose_liberal_cards(player, president, cards, deck):
 
     prob_fff = multi_3(f_remaining) / multi_3(tot_remaining)
     prob_ffl = 3 * l_remaining * multi_2(f_remaining) / multi_3(tot_remaining)
-    prob_fll = 3 * f_remaining * multi_2(l_remaining) / multi_3(tot_remaining)
-    prob_lll = multi_2(l_remaining) / multi_3(tot_remaining)
     old_f_prob = player.probabilities[president][0]
-    old_l_prob = 1 - old_f_prob
     if Cards.LIBERAL in cards:
-        if Cards.FASCIST in cards:
-            # new_prob = (prob_ffl*old_l_prob+prob_fll)*old_f_prob
-            # new_prob /= (prob_ffl*old_l_prob+prob_fll*old_f_prob)
-            new_prob = old_f_prob
-            message = 'Chancellor {} is adjusting prob for player {} due to receiving Differing Cards'
-        else:
-            # new_prob = (prob_lll+prob_fll)*old_l_prob / (prob_lll+prob_fll*old_l_prob)
-            # new_prob = 1 - new_prob
-            new_prob = old_f_prob
-            message = 'Chancellor {} is adjusting prob for player {} due to receiving 2 Liberal Cards'
-
         card = Cards.LIBERAL
     else:
         new_prob = (prob_fff+prob_ffl)*old_f_prob/(prob_fff+prob_ffl*old_f_prob)
         message = 'Chancellor {} is adjusting prob for player {} due to receiving 2 Fascist Cards'
         card = Cards.FASCIST
-
-    # adjust(new_prob,old_f_prob)
-    player.set_prob(president, new_prob)
-    Log.log(message.format(player.name, president))
-    player.print_probs()
+        player.set_prob(president, new_prob)
+        Log.log_probs(message.format(player.name, president))
+        player.print_probs()
     return card
 
 
@@ -163,7 +147,7 @@ def standard_liberal_vote(player, president, chancellor):
     unknown_players = len(set(probabilities.keys())-set(player.fascists)-{player.name})
     default_individual_prob = unknown_fascists/unknown_players
     limit_prob = 2*default_individual_prob-default_individual_prob**2
-    return president_prob+chancellor_prob-(president_prob*chancellor_prob) < limit_prob+.01
+    return president_prob+chancellor_prob-(president_prob*chancellor_prob) < limit_prob+.07
 
 
 def standard_fascist_vote(player, president, chancellor):
@@ -298,14 +282,15 @@ def random_president_cards(player, chancellor, cards):
     cards.pop()
     return cards
 
+
 def random_chancellor_cards(player, president, cards, deck):
     random.shuffle(cards)
     cards.pop()
-    return cards
+    return cards[0]
 
 def vote_true(player, president, chancellor):
     return True
 
 
 def shoot_random(player):
-    return random.choice(player.probabilities.keys())
+    return random.choice(list(player.probabilities.keys()))

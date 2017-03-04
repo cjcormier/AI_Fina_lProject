@@ -77,13 +77,13 @@ class Player:
                 self.probabilities[curr_player] = (curr_prob, new_hitler_prob)
 
     def print_probs(self):
-        Log.log('Player {} Probabilities:'.format(self.name))
+        Log.log_probs('Player {} Probabilities:'.format(self.name))
         prob_fascist, prob_hitler = (0, 0)
         for n in self.probabilities:
-            Log.log('\t{}: {}'.format(n, self.probabilities[n]))
+            Log.log_probs('\t{}: {}'.format(n, self.probabilities[n]))
             prob_fascist = prob_fascist+self.probabilities[n][0]
             prob_hitler = prob_hitler+self.probabilities[n][1]
-        Log.log('Total: ({}, {})'.format(prob_fascist, prob_hitler))
+        Log.log_probs('Total: ({}, {})'.format(prob_fascist, prob_hitler))
 
     def set_strategy(self, strategy_type, strategy):
         self.strategies[strategy_type] = strategy

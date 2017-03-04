@@ -104,7 +104,7 @@ def set_hitler_strats(player, choose_c=0, p_cards=0, c_cards=0, vote=0, shoot=0)
 
 def set_random(player):
     player.set_strategy(StrategyTypes.CHOOSE_CHANCELLOR, random_choose_chancellor)
-    player.set_strategy(StrategyTypes.CHANCELLOR_CARDS, random_president_cards)
+    player.set_strategy(StrategyTypes.CHANCELLOR_CARDS, random_chancellor_cards)
     player.set_strategy(StrategyTypes.PRESIDENT_CARDS, random_president_cards)
     player.set_strategy(StrategyTypes.VOTE, vote_true)
     player.set_strategy(StrategyTypes.ANALYZE_REVEALED_CARD, pass_strat)
