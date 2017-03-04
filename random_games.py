@@ -37,7 +37,7 @@ def main():
                 #         set_hitler_strats(player)
                 for name, player in players.items():
                     if player.role is Role.LIBERAL:
-                        set_liberal_strats(player, p_cards=1)
+                        set_liberal_strats(player, p_cards=0)
                     elif player.role is Role.FASCIST:
                         set_fascist_strats(player, choose_c=2)
                     elif player.role is Role.HITLER:
