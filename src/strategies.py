@@ -205,9 +205,9 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
     player.set_prob(president, adjust(prob_president, prev_pres))
     player.set_prob(chancellor, adjust(prob_chancellor, prev_chanc))
 
-    # message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
-    # Log.log(message.format(player.name, president, chancellor))
-    # player.print_probs()
+    message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
+    Log.log_probs(message.format(player.name, president, chancellor))
+    player.print_probs()
 
 adjust_factor = 2
 
