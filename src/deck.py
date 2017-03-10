@@ -44,3 +44,5 @@ class Deck:
 
     def total_remaining(self):
         return self.libDeck+self.libDisc, self.facDeck+self.facDisc
+
+__all__ = ['Deck']

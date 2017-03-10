@@ -1,5 +1,6 @@
 from src.strategies import *
 from src.logging import Log
+from src.roles import Role
 
 
 class Player:
@@ -148,3 +149,5 @@ class Player:
 
 def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
+
+__all__ = ['Player']
