@@ -64,14 +64,14 @@ def h_choose_fascist_chancellor(player, valid_players):
     return random.choice(players)
 
 
-def choose_not_hitler_chancellor(player, valid_players):
-    probabilities = player.probabilities
+def choose_not_hitler_chancellor(curr_player, valid_players):
+    probabilities = curr_player.probabilities
     fascist_players = []
 
-    for player in valid_players:
-        if player in probabilities:
-            if probabilities[player][1] != 1:
-                fascist_players.append(player)
+    for curr_player in valid_players:
+        if curr_player in probabilities:
+            if probabilities[curr_player][1] != 1:
+                fascist_players.append(curr_player)
     return random.choice(fascist_players)
 
 
