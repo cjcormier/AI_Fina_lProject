@@ -77,6 +77,7 @@ class Game:
         return vote_passed
 
     def next_pres(self):
+        # TODO actually get next pres from list
         self.president_name = (self.president_name + 1) % self.num_players
         while self.president_name not in self.players.keys():
             self.president_name = (self.president_name + 1) % self.num_players
@@ -84,12 +85,8 @@ class Game:
     def propose_gov(self):
         players = self.players.keys()
         chancellor_name = self.chancellor.name if self.chancellor is not None else -1
-
         names = [x for x in players if x is not chancellor_name]
-
-        if len(self.players) > 5:
-            names = [x for x in names if x is not self.prev_pres]
-
+        names = names if len(self.players) > 5 else [x for x in names if x is not self.prev_pres]
         Log.log('Valid chancellors: {}'.format(names))
 
         president = self.players[self.president_name]
@@ -107,18 +104,14 @@ class Game:
     def choose_policy(self):
         remaining = self.deck.total_remaining()
         policies = self.deck.draw_hand()
+        p_pick = self.president.president_pick(self.chancellor.name, list(policies))
+        c_pick = self.chancellor.chancellor_pick(self.president.name, list(p_pick), remaining)
+        message = '\nDrawn Cards:{}\nPres Pick: {}, Canc Pick: {}\n'
+        Log.log(message.format(policies, p_pick, c_pick))
 
-        president_pick = self.president.president_pick(self.chancellor.name, list(policies))
-        chancellor_pick = self.chancellor.chancellor_pick(self.president.name,
-                                                          list(president_pick), remaining)
-
-        Log.log('\nDrawn Cards:{}\nPres Pick: {}, Canc Pick: {}\n'.format(policies, president_pick,
-                                                                          chancellor_pick))
-
-        self.president.analyze_chancellor_card(self.chancellor.name, president_pick,
-                                               chancellor_pick)
-        self.deck.discard(policies, chancellor_pick)
-        return chancellor_pick
+        self.president.analyze_chancellor_card(self.chancellor.name, p_pick, c_pick)
+        self.deck.discard(policies, c_pick)
+        return c_pick
 
     def vote(self):
         votes = 0
@@ -131,9 +124,8 @@ class Game:
                 ja.append(player.name)
             else:
                 nay.append(player.name)
-
-        Log.log('Votes in favor: {}, Votes against: {}  ({},{})'.format(ja, nay, votes,
-                                                                        len(self.players) - votes))
+        message = 'Votes in favor: {}, Votes against: {}  ({},{})'
+        Log.log(message.format(ja, nay, votes, len(self.players) - votes))
         return votes >= (len(self.players) / 2)
 
     def record_gov(self):
@@ -169,11 +161,13 @@ class Game:
                 message = 'Player {0} is not Hitler. ({0} was {1} instead and {2} was {3}.)'
                 Log.log(message.format(player_shot, self.players[player_shot].role,
                                        self.president.name, self.president.role))
-            del self.players[player_shot]
-            for name, player in self.players.items():
-                player.remove_player(player_shot)
-            self.winner = BoardStates.NORMAL
+            self.remove_player(player_shot)
         return True
+
+    def remove_player(self, player_shot):
+        del self.players[player_shot]
+        for name, player in self.players.items():
+            player.remove_player(player_shot)
 
     def assign_roles(self):
         num_fascists = int((self.num_players-1)/2)
@@ -184,25 +178,18 @@ class Game:
         for i in names:
             players[i] = Player(i, names, num_fascists)
 
-        names = list(names)
-        shuffle(names)
-
-        chosen_fascists = 0
+        names = shuffle(list(names))
         hitler = names.pop()
-        chosen_fascists += 1
+        chosen_fascists = 1
 
         while chosen_fascists < num_fascists:
             fascists.append(names.pop())
             chosen_fascists += 1
-
         for player in names:
             players[player].set_role(Role.LIBERAL, {Role.FASCIST: [], Role.HITLER: None})
-
         for player in fascists:
             players[player].set_role(Role.FASCIST, {Role.FASCIST: fascists, Role.HITLER: hitler})
 
-        if self.num_players > 6:
-            fascists = []
-        players[hitler].set_role(Role.HITLER, {Role.FASCIST: fascists, Role.HITLER: hitler})
-
+        h_fascists = fascists if self.num_players < 6 else []
+        players[hitler].set_role(Role.HITLER, {Role.FASCIST: h_fascists, Role.HITLER: hitler})
         return players
