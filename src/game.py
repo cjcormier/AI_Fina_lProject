@@ -43,22 +43,7 @@ class Game:
     def round(self):
         self.rounds += 1
         Log.log('\n------------------------\n\nNew Round')
-        vote_passed = False
-        rounds_of_voting = 0
-        while not vote_passed and rounds_of_voting < 3:  # until the vote passes or 3 votes fail
-            rounds_of_voting += 1
-            self.president_name = (self.president_name + 1) % self.num_players
-            while self.president_name not in self.players.keys():
-                self.president_name = (self.president_name + 1) % self.num_players
-
-            self.president, self.chancellor = self.new_gov()
-
-            message = "Voting on new government. President: {} Chancellor: {} ({},{})"
-            Log.log(message.format(self.president_name, self.chancellor.name, self.president.role,
-                                   self.chancellor.role))
-            vote_passed = self.vote()
-            if not vote_passed:
-                Log.log('Vote Failed, number of consecutive failed votes:', rounds_of_voting)
+        vote_passed = self.elect_new_gov()
 
         if vote_passed:  # if loop terminated in a yay vote
             self.record_gov()
@@ -86,6 +71,25 @@ class Game:
             self.winner = self.board.increment_board(next_policy)
 
         Log.log('Next Policy:', next_policy)
+
+    def elect_new_gov(self):
+        rounds_of_voting = 0
+        vote_passed = False
+        while not vote_passed and rounds_of_voting < 3:  # until the vote passes or 3 votes fail
+            rounds_of_voting += 1
+            self.president_name = (self.president_name + 1) % self.num_players
+            while self.president_name not in self.players.keys():
+                self.president_name = (self.president_name + 1) % self.num_players
+
+            self.president, self.chancellor = self.new_gov()
+
+            message = "Voting on new government. President: {} Chancellor: {} ({},{})"
+            Log.log(message.format(self.president_name, self.chancellor.name, self.president.role,
+                                   self.chancellor.role))
+            vote_passed = self.vote()
+            if not vote_passed:
+                Log.log('Vote Failed, number of consecutive failed votes:', rounds_of_voting)
+        return vote_passed
 
     def choose_policy(self):
         remaining = self.deck.total_remaining()
