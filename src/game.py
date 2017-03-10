@@ -55,33 +55,27 @@ class Game:
                 return
 
             next_policy = self.choose_policy()
-            self.winner = self.board.increment_board(next_policy)
 
             for name, player in self.players.items():
                 player.analyze_revealed_card(self.president.name, self.chancellor.name,
                                              next_policy, self.deck.total_remaining())
 
-            if self.shoot(next_policy):
-                return
-
         else:  # if loop terminated due to 3 nay votes
             next_policy = self.deck.draw()
             self.anarchies += 1
             Log.log('Anarchy!!!!!')
-            self.winner = self.board.increment_board(next_policy)
 
+        self.winner = self.board.increment_board(next_policy)
         Log.log('Next Policy:', next_policy)
+        self.shoot(next_policy)
 
     def elect_new_gov(self):
         rounds_of_voting = 0
         vote_passed = False
         while not vote_passed and rounds_of_voting < 3:  # until the vote passes or 3 votes fail
             rounds_of_voting += 1
-            self.president_name = (self.president_name + 1) % self.num_players
-            while self.president_name not in self.players.keys():
-                self.president_name = (self.president_name + 1) % self.num_players
-
-            self.president, self.chancellor = self.new_gov()
+            self.next_pres()
+            self.president, self.chancellor = self.propose_gov()
 
             message = "Voting on new government. President: {} Chancellor: {} ({},{})"
             Log.log(message.format(self.president_name, self.chancellor.name, self.president.role,
@@ -90,6 +84,27 @@ class Game:
             if not vote_passed:
                 Log.log('Vote Failed, number of consecutive failed votes:', rounds_of_voting)
         return vote_passed
+
+    def next_pres(self):
+        self.president_name = (self.president_name + 1) % self.num_players
+        while self.president_name not in self.players.keys():
+            self.president_name = (self.president_name + 1) % self.num_players
+
+    def propose_gov(self):
+        players = self.players.keys()
+        chancellor_name = self.chancellor.name if self.chancellor is not None else -1
+
+        names = [x for x in players if x is not chancellor_name]
+
+        if len(self.players) > 5:
+            names = [x for x in names if x is not self.prev_pres]
+
+        Log.log('Valid chancellors: {}'.format(names))
+
+        president = self.players[self.president_name]
+        chancellor_name = president.choose_chancellor(names)  # limit valid players
+        chancellor = self.players[chancellor_name]
+        return president, chancellor
 
     def choose_policy(self):
         remaining = self.deck.total_remaining()
@@ -106,22 +121,6 @@ class Game:
                                                chancellor_pick)
         self.deck.discard(policies, chancellor_pick)
         return chancellor_pick
-
-    def new_gov(self):
-        players = self.players.keys()
-        chancellor_name = self.chancellor.name if self.chancellor is not None else -1
-
-        names = [x for x in players if x is not chancellor_name]
-
-        if len(self.players) > 5:
-            names = [x for x in names if x is not self.prev_pres]
-
-        Log.log('Valid chancellors: {}'.format(names))
-
-        president = self.players[self.president_name]
-        chancellor_name = president.choose_chancellor(names)  # limit valid players
-        chancellor = self.players[chancellor_name]
-        return president, chancellor
 
     def vote(self):
         votes = 0
