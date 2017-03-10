@@ -27,44 +27,35 @@ class Game:
         self.l_chanc = 0
         self.f_chanc = 0
         self.h_chanc = 0
-        self.rounds = 0
 
     def run(self):
+        rounds = 0
         while self.winner is BoardStates.NORMAL:
+            rounds += 1
             self.round()
         message = '\n{} rounds:\n{} liberal presidents, {} fascist presidents and {} hitler ' \
                   'presidents\n{} liberal chancellors, {} fascist chancellors and {} hitler ' \
                   'chancellors.'
-        Log.log(
-            message.format(self.rounds, self.l_pres, self.f_pres, self.h_pres, self.l_chanc,
-                           self.f_chanc, self.h_chanc))
+        Log.log(message.format(rounds, self.l_pres, self.f_pres, self.h_pres, self.l_chanc,
+                               self.f_chanc, self.h_chanc))
+
         return self.winner, self. board.fascist_board, self.board.liberal_board, self.anarchies
 
     def round(self):
-        self.rounds += 1
         Log.log('\n------------------------\n\nNew Round')
-        vote_passed = self.elect_new_gov()
 
-        if vote_passed:  # if loop terminated in a yay vote
+        if self.elect_new_gov():
             self.record_gov()
             self.prev_pres = self.president_name
             Log.log("Vote Passed")
-            if 4 <= self.board.fascist_board <= 5 and self.chancellor.role is Role.HITLER:
-                Log.log('Chancellor {} is Hitler, fascists win!'.format(self.chancellor.name))
-                self.winner = BoardStates.HITLER_CHANCELLOR
+            if self.check_hitler_chanc_win():
                 return
-
             next_policy = self.choose_policy()
-
-            for name, player in self.players.items():
-                player.analyze_revealed_card(self.president.name, self.chancellor.name,
-                                             next_policy, self.deck.total_remaining())
-
-        else:  # if loop terminated due to 3 nay votes
+            self.analyze_revealed_card(next_policy)
+        else:
             next_policy = self.deck.draw()
             self.anarchies += 1
             Log.log('Anarchy!!!!!')
-
         self.winner = self.board.increment_board(next_policy)
         Log.log('Next Policy:', next_policy)
         self.shoot(next_policy)
@@ -105,6 +96,13 @@ class Game:
         chancellor_name = president.choose_chancellor(names)  # limit valid players
         chancellor = self.players[chancellor_name]
         return president, chancellor
+
+    def check_hitler_chanc_win(self):
+        if 4 <= self.board.fascist_board <= 5 and self.chancellor.role is Role.HITLER:
+            Log.log('Chancellor {} is Hitler, fascists win!'.format(self.chancellor.name))
+            self.winner = BoardStates.HITLER_CHANCELLOR
+            return True
+        return False
 
     def choose_policy(self):
         remaining = self.deck.total_remaining()
@@ -152,6 +150,11 @@ class Game:
             self.f_chanc += 1
         elif self.chancellor.role is Role.HITLER:
             self.h_chanc += 1
+
+    def analyze_revealed_card(self, next_policy):
+        for name, player in self.players.items():
+            player.analyze_revealed_card(self.president.name, self.chancellor.name,
+                                         next_policy, self.deck.total_remaining())
 
     def shoot(self, next_policy):
         fascist_board = self.board.fascist_board
