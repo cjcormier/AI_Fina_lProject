@@ -292,9 +292,20 @@ def random_chancellor_cards(player, president, cards, deck):
     cards.pop()
     return cards[0]
 
+
 def vote_true(player, president, chancellor):
     return True
 
 
 def shoot_random(player):
     return random.choice(list(player.probabilities.keys()))
+
+__all__ = ['StrategyTypes', 'choose_liberal_chancellor', 'choose_fascist_chancellor',
+           'h_choose_fascist_chancellor', 'choose_not_hitler_chancellor',
+           'president_choose_liberal_cards', 'president_give_choice',
+           'president_choose_fascist_cards', 'chancellor_choose_liberal_cards',
+           'chancellor_choose_fascist_cards', 'standard_liberal_vote', 'standard_fascist_vote',
+           'analyze_revealed_card', 'set_adjust_factor', 'analyze_chancellor_card',
+           'liberal_shoot', 'fascist_shoot', 'hitler_shoot', 'pass_strat',
+           'random_choose_chancellor', 'random_president_cards', 'random_chancellor_cards',
+           'vote_true', 'shoot_random']

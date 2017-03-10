@@ -27,3 +27,5 @@ class Board:
 
         return BoardStates.NORMAL
 
+__all__ = ['BoardStates', 'Board']
+

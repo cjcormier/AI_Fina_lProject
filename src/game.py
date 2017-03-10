@@ -4,6 +4,7 @@ from src.player import *
 from src.board import *
 from src.roles import Role
 from src.logging import Log
+from src.cards import Cards
 
 
 class Game:
@@ -86,7 +87,7 @@ class Game:
         players = self.players.keys()
         chancellor_name = self.chancellor.name if self.chancellor is not None else -1
         names = [x for x in players if x is not chancellor_name]
-        names = names if len(self.players) > 5 else [x for x in names if x is not self.prev_pres]
+        names = [x for x in names if x is not self.prev_pres] if len(self.players) > 5 else names
         Log.log('Valid chancellors: {}'.format(names))
 
         president = self.players[self.president_name]
@@ -178,7 +179,8 @@ class Game:
         for i in names:
             players[i] = Player(i, names, num_fascists)
 
-        names = shuffle(list(names))
+        names = list(names)
+        shuffle(names)
         hitler = names.pop()
         chosen_fascists = 1
 
@@ -193,3 +195,5 @@ class Game:
         h_fascists = fascists if self.num_players < 6 else []
         players[hitler].set_role(Role.HITLER, {Role.FASCIST: h_fascists, Role.HITLER: hitler})
         return players
+
+__all__ = [Game]

@@ -1,5 +1,3 @@
-
-
 class Log:
     can_log = True
     can_log_probs = False
@@ -26,3 +24,5 @@ class Log:
             string += ' '
         if Log.can_log:
             print(string[0:-1])
+
+__all__ = ['Log']
