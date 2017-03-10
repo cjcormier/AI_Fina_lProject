@@ -145,7 +145,10 @@ def standard_liberal_vote(player, president, chancellor):
 
     unknown_fascists = player.num_fascists - len(player.fascists)
     unknown_players = len(set(probabilities.keys())-set(player.fascists)-{player.name})
-    default_individual_prob = unknown_fascists/unknown_players
+    if unknown_fascists == 0:
+        default_individual_prob = 0
+    else:
+        default_individual_prob = unknown_fascists/unknown_players
     limit_prob = 2*default_individual_prob-default_individual_prob**2
     return president_prob+chancellor_prob-(president_prob*chancellor_prob) < limit_prob+.07
 
@@ -186,7 +189,8 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
                 prob_president = 0
                 prob_chancellor = 0
         else:
-            prob_l = prob_lll + prob_fll*(prob_cl+prob_pl-prob_cl*prob_pl) + prob_ffl*prob_cl*prob_pl
+            prob_l = prob_lll + prob_fll*(prob_cl+prob_pl-prob_cl*prob_pl) + \
+                     prob_ffl*prob_cl*prob_pl
             prob_president = (prob_lll + prob_fll + prob_ffl*prob_cl)*prob_pl
             prob_president /= prob_l
             prob_president = 1-prob_president
