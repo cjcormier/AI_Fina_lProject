@@ -6,193 +6,190 @@ from src.roles import Role
 from src.logging import Log
 
 
-def game(num_players, players, allow_shoots=False):
-    board = Board()
-    deck = Deck(6, 11)
-    winner = BoardStates.NORMAL
+class Game:
+    def __init__(self, num_players, allow_shoots=False):
+        self.num_players = num_players
+        self.players = self.assign_roles()
+        self.allow_shoots = allow_shoots
+        self.board = Board()
+        self.deck = Deck(6, 11)
+        self.winner = BoardStates.NORMAL
 
-    prev_pres = -1
-    president_name = -1
-    president = None
-    chancellor = None
-    anarchies = 0
-    l_pres = 0
-    f_pres = 0
-    h_pres = 0
-    l_chanc = 0
-    f_chanc = 0
-    h_chanc = 0
-    rounds = 0
+        self.prev_pres = -1
+        self.president_name = -1
+        self.president = None
+        self.chancellor = None
 
-    print_roles(players)
+        self.anarchies = 0
+        self.l_pres = 0
+        self.f_pres = 0
+        self.h_pres = 0
+        self.l_chanc = 0
+        self.f_chanc = 0
+        self.h_chanc = 0
 
-    # until someone wins loop this
-    while winner is BoardStates.NORMAL:
-        rounds += 1
+    def run(self):
+        rounds = 0
+        while self.winner is BoardStates.NORMAL:
+            rounds += 1
+            self.round()
+        message = '\n{} rounds:\n{} liberal presidents, {} fascist presidents and {} hitler ' \
+                  'presidents\n{} liberal chancellors, {} fascist chancellors and {} hitler ' \
+                  'chancellors.'
+        Log.log(message.format(rounds, self.l_pres, self.f_pres, self.h_pres, self.l_chanc,
+                               self.f_chanc, self.h_chanc))
+
+        return self.winner, self. board.fascist_board, self.board.liberal_board, self.anarchies
+
+    def round(self):
         Log.log('\n------------------------\n\nNew Round')
-        vote_passed = False
+
+        if self.elect_new_gov():
+            self.record_gov()
+            self.prev_pres = self.president_name
+            Log.log("Vote Passed")
+            if self.check_hitler_chanc_win():
+                return
+            next_policy = self.choose_policy()
+            self.analyze_revealed_card(next_policy)
+        else:
+            next_policy = self.deck.draw()
+            self.anarchies += 1
+            Log.log('Anarchy!!!!!')
+        self.winner = self.board.increment_board(next_policy)
+        Log.log('Next Policy:', next_policy)
+        self.shoot(next_policy)
+
+    def elect_new_gov(self):
         rounds_of_voting = 0
+        vote_passed = False
         while not vote_passed and rounds_of_voting < 3:  # until the vote passes or 3 votes fail
             rounds_of_voting += 1
-            president_name = (president_name+1) % num_players
-            while president_name not in players.keys():
-                president_name = (president_name+1) % num_players
-
-            president, chancellor = new_gov(players, president_name, prev_pres, chancellor)
+            self.next_pres()
+            self.president, self.chancellor = self.propose_gov()
 
             message = "Voting on new government. President: {} Chancellor: {} ({},{})"
-            Log.log(message.format(president_name, chancellor.name, president.role,
-                                   chancellor.role))
-            vote_passed = vote(players, president, chancellor)
+            Log.log(message.format(self.president_name, self.chancellor.name, self.president.role,
+                                   self.chancellor.role))
+            vote_passed = self.vote()
             if not vote_passed:
                 Log.log('Vote Failed, number of consecutive failed votes:', rounds_of_voting)
+        return vote_passed
 
-        if vote_passed:              # if loop terminated in a yay vote
-            l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc = \
-                record_gov(l_pres, f_pres, h_pres, l_chanc,
-                           f_chanc, h_chanc, president, chancellor)
-            prev_pres = president_name
-            Log.log("Vote Passed")
-            if 4 <= board.fascist_board <= 5 and chancellor.role is Role.HITLER:
-                Log.log('Chancellor {} is Hitler, fascists win!'.format(chancellor.name))
-                winner = BoardStates.HITLER_CHANCELLOR
-                continue
+    def next_pres(self):
+        # TODO actually get next pres from list
+        self.president_name = (self.president_name + 1) % self.num_players
+        while self.president_name not in self.players.keys():
+            self.president_name = (self.president_name + 1) % self.num_players
 
-            next_policy = choose_policy(president, chancellor, deck)
+    def propose_gov(self):
+        players = self.players.keys()
+        chancellor_name = self.chancellor.name if self.chancellor is not None else -1
+        names = [x for x in players if x is not chancellor_name]
+        names = names if len(self.players) > 5 else [x for x in names if x is not self.prev_pres]
+        Log.log('Valid chancellors: {}'.format(names))
 
-            for name, player in players.items():
-                player.analyze_revealed_card(president.name, chancellor.name,
-                                             next_policy, deck.total_remaining())
+        president = self.players[self.president_name]
+        chancellor_name = president.choose_chancellor(names)  # limit valid players
+        chancellor = self.players[chancellor_name]
+        return president, chancellor
 
-            if 4 <= board.fascist_board <= 5 and next_policy is Cards.FASCIST and allow_shoots:
-                winner = shoot(president, players)
-                if winner is not BoardStates.NORMAL:
-                    continue
+    def check_hitler_chanc_win(self):
+        if 4 <= self.board.fascist_board <= 5 and self.chancellor.role is Role.HITLER:
+            Log.log('Chancellor {} is Hitler, fascists win!'.format(self.chancellor.name))
+            self.winner = BoardStates.HITLER_CHANCELLOR
+            return True
+        return False
 
-        else:                       # if loop terminated due to 3 nay votes
-            next_policy = deck.draw()
-            anarchies += 1
-            Log.log('Anarchy!!!!!')
+    def choose_policy(self):
+        remaining = self.deck.total_remaining()
+        policies = self.deck.draw_hand()
+        p_pick = self.president.president_pick(self.chancellor.name, list(policies))
+        c_pick = self.chancellor.chancellor_pick(self.president.name, list(p_pick), remaining)
+        message = '\nDrawn Cards:{}\nPres Pick: {}, Canc Pick: {}\n'
+        Log.log(message.format(policies, p_pick, c_pick))
 
-        Log.log('Next Policy:', next_policy)
-        winner = board.increment_board(next_policy)
-    message = '\n{} rounds:\n{} liberal presidents, {} fascist presidents and {} hitler ' \
-              'presidents\n{} liberal chancellors, {} fascist chancellors and {} hitler ' \
-              'chancellors.'
-    Log.log(message.format(rounds, l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc))
-    return winner, board.fascist_board, board.liberal_board, anarchies
+        self.president.analyze_chancellor_card(self.chancellor.name, p_pick, c_pick)
+        self.deck.discard(policies, c_pick)
+        return c_pick
 
+    def vote(self):
+        votes = 0
+        ja = []
+        nay = []
+        for name, player in self.players.items():
+            player_vote = player.vote(self.president.name, self.chancellor.name)
+            if player_vote:
+                votes += 1
+                ja.append(player.name)
+            else:
+                nay.append(player.name)
+        message = 'Votes in favor: {}, Votes against: {}  ({},{})'
+        Log.log(message.format(ja, nay, votes, len(self.players) - votes))
+        return votes >= (len(self.players) / 2)
 
-def assign_roles(num_players):
-    num_fascists = int((num_players-1)/2)
-    fascists = []
-    players = {}
-    names = list(range(num_players))
+    def record_gov(self):
+        if self.president.role is Role.LIBERAL:
+            self.l_pres += 1
+        elif self.president.role is Role.FASCIST:
+            self.f_pres += 1
+        elif self.president.role is Role.HITLER:
+            self.h_pres += 1
 
-    for i in names:
-        players[i] = Player(i, names, num_fascists)
+        if self.chancellor.role is Role.LIBERAL:
+            self.l_chanc += 1
+        elif self.chancellor.role is Role.FASCIST:
+            self.f_chanc += 1
+        elif self.chancellor.role is Role.HITLER:
+            self.h_chanc += 1
 
-    names = list(names)
-    shuffle(names)
+    def analyze_revealed_card(self, next_policy):
+        for name, player in self.players.items():
+            player.analyze_revealed_card(self.president.name, self.chancellor.name,
+                                         next_policy, self.deck.total_remaining())
 
-    chosen_fascists = 0
-    hitler = names.pop()
-    chosen_fascists += 1
+    def shoot(self, next_policy):
+        fascist_board = self.board.fascist_board
+        if 4 <= fascist_board <= 5 and next_policy is Cards.FASCIST and self.allow_shoots:
+            player_shot = self.president.shoot()
+            Log.log('President {} shot player {}.'.format(self.president.name, player_shot))
+            if self.players[player_shot].role is Role.HITLER:
+                Log.log('Player {} is Hitler, liberals win!'.format(player_shot))
+                self.winner = BoardStates.HITLER_SHOT
+                return False
+            else:
+                message = 'Player {0} is not Hitler. ({0} was {1} instead and {2} was {3}.)'
+                Log.log(message.format(player_shot, self.players[player_shot].role,
+                                       self.president.name, self.president.role))
+            self.remove_player(player_shot)
+        return True
 
-    while chosen_fascists < num_fascists:
-        fascists.append(names.pop())
-        chosen_fascists += 1
+    def remove_player(self, player_shot):
+        del self.players[player_shot]
+        for name, player in self.players.items():
+            player.remove_player(player_shot)
 
-    for player in names:
-        players[player].set_role(Role.LIBERAL, {Role.FASCIST: [], Role.HITLER: None})
-
-    for player in fascists:
-        players[player].set_role(Role.FASCIST, {Role.FASCIST: fascists, Role.HITLER: hitler})
-
-    if num_players > 6:
+    def assign_roles(self):
+        num_fascists = int((self.num_players-1)/2)
         fascists = []
-    players[hitler].set_role(Role.HITLER, {Role.FASCIST: fascists, Role.HITLER: hitler})
+        players = {}
+        names = list(range(self.num_players))
 
-    return players
+        for i in names:
+            players[i] = Player(i, names, num_fascists)
 
+        names = shuffle(list(names))
+        hitler = names.pop()
+        chosen_fascists = 1
 
-def shoot(president, players):
-    player_shot = president.shoot()
-    Log.log('President {} shot player {}.'.format(president.name, player_shot))
-    if players[player_shot].role is Role.HITLER:
-        Log.log('Player {} is Hitler, liberals win!'.format(player_shot))
-        return BoardStates.HITLER_SHOT
-    else:
-        message = 'Player {0} is not Hitler. ({0} was {1} instead and {2} was {3}.)'
-        Log.log(message.format(player_shot, players[player_shot].role,
-                               president.name, president.role))
-    del players[player_shot]
-    for name, player in players.items():
-        player.remove_player(player_shot)
-    return BoardStates.NORMAL
+        while chosen_fascists < num_fascists:
+            fascists.append(names.pop())
+            chosen_fascists += 1
+        for player in names:
+            players[player].set_role(Role.LIBERAL, {Role.FASCIST: [], Role.HITLER: None})
+        for player in fascists:
+            players[player].set_role(Role.FASCIST, {Role.FASCIST: fascists, Role.HITLER: hitler})
 
-
-def print_roles(players):
-    for name, player in players.items():
-        Log.log("Player {} is {}".format(player.name, player.role))
-        # player.print_probs()
-
-
-def choose_policy(president, chancellor, deck):
-    remaining = deck.total_remaining()
-    policies = deck.draw_hand()
-
-    president_pick = president.president_pick(chancellor.name, list(policies))
-    chancellor_pick = chancellor.chancellor_pick(president.name, list(president_pick), remaining)
-
-    Log.log('\nDrawn Cards:{}\nPres Pick: {}, Canc Pick: {}\n'.format(policies, president_pick,
-                                                                      chancellor_pick))
-
-    president.analyze_chancellor_card(chancellor.name, president_pick, chancellor_pick)
-    deck.discard(policies, chancellor_pick)
-    return chancellor_pick
-
-
-def new_gov(players, pres, prev_pres, chancellor):
-    chancellor_name = chancellor.name if chancellor is not None else -1
-    names = [x for x in players.keys() if x is not prev_pres and x is not chancellor_name]
-    Log.log('Valid chancellors: {}'.format(names))
-    president = players[pres]
-    chancellor_name = president.choose_chancellor(names)  # limit valid players
-    chancellor = players[chancellor_name]
-    return president, chancellor
-
-
-def vote(players, president, chancellor):
-    votes = 0
-    ja = []
-    nay = []
-    for name, player in players.items():
-        player_vote = player.vote(president.name, chancellor.name)
-        if player_vote:
-            votes += 1
-            ja.append(player.name)
-        else:
-            nay.append(player.name)
-
-    Log.log('Votes in favor: {}, Votes against: {}  ({},{})'.format(ja, nay, votes,
-                                                                    len(players)-votes))
-    return votes >= (len(players) / 2)
-
-
-def record_gov(l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc, president, chancellor):
-    if president.role is Role.LIBERAL:
-        l_pres += 1
-    elif president.role is Role.FASCIST:
-        f_pres += 1
-    elif president.role is Role.HITLER:
-        h_pres += 1
-
-    if chancellor.role is Role.LIBERAL:
-        l_chanc += 1
-    elif chancellor.role is Role.FASCIST:
-        f_chanc += 1
-    elif chancellor.role is Role.HITLER:
-        h_chanc += 1
-
-    return l_pres, f_pres, h_pres, l_chanc, f_chanc, h_chanc
+        h_fascists = fascists if self.num_players < 6 else []
+        players[hitler].set_role(Role.HITLER, {Role.FASCIST: h_fascists, Role.HITLER: hitler})
+        return players

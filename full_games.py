@@ -1,7 +1,7 @@
 from set_strats import *
 from src.roles import Role
 from src.board import BoardStates
-from src.game import assign_roles, game
+from src.game import Game
 from src.strategies import set_adjust_factor
 from src.logging import Log
 
@@ -33,9 +33,9 @@ def main():
                                     set_adjust_factor(n / 10)
 
                                     for i in range(games):
-                                        players = assign_roles(num_players)
+                                        game = Game(num_players, True)
 
-                                        for name, player in players.items():
+                                        for name, player in game.players.items():
                                             if player.role is Role.LIBERAL:
                                                 set_liberal_strats(player, p_cards=lcpc)
                                             elif player.role is Role.FASCIST:
@@ -46,7 +46,7 @@ def main():
 
                                         Log.allow_logging(False)
                                         winner, fascist_board, liberal_board, anarchies = \
-                                            game(num_players, players, allow_shoots=True)
+                                            game.run()
                                         Log.allow_logging(True)
 
                                         total_anarchies += anarchies

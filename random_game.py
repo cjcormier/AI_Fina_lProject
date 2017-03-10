@@ -1,7 +1,7 @@
 import argparse
 
 from set_strats import *
-from src.game import assign_roles, game
+from src.game import Game
 from src.strategies import set_adjust_factor
 from src.roles import Role
 from src.logging import Log
@@ -28,10 +28,10 @@ args = parser.parse_args()
 
 def main():
     set_adjust_factor(.3)
-    players = assign_roles(args.p)
     Log.allow_prob_logging(args.v)
+    game = Game(args.p, True)
 
-    for name, player in players.items():
+    for name, player in game.players.items():
         if player.role is Role.LIBERAL:
             set_liberal_strats(player, p_cards=args.LCPC)
         elif player.role is Role.FASCIST:
@@ -40,7 +40,8 @@ def main():
             set_hitler_strats(player, choose_c=args.HCC, p_cards=args.HCPC,
                               c_cards=args.HCCC, vote=args.HV)
 
-    winner, fascist_board, liberal_board, anarchies= game(args.p, players, allow_shoots=True)
+    winner, fascist_board, liberal_board, anarchies = game.run()
+
     Log.log('')
     Log.log(winner)
     Log.log("Fascist Policies: {}, Liberal Policies: {}".format(fascist_board, liberal_board))
