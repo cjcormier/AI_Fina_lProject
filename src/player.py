@@ -42,22 +42,25 @@ class Player:
                 self.init_prob(known_roles, 0, 0, (1, 1))
 
     def init_prob(self, known_roles, fascist_prob, hitler_prob, self_prob):
+        fascist_prob = float(fascist_prob)
+        hitler_prob = float(hitler_prob)
+        self_prob = (float(self_prob[0]), float(self_prob[1]))
+
         self.fascists = known_roles[Role.FASCIST]
         self.hitler = known_roles[Role.HITLER]
         for player in self.probabilities:
             if player in self.fascists:
-                self.probabilities[player] = (1, 0)
+                self.probabilities[player] = (1.0, 0.0)
             elif player is self.name:
                 self.probabilities[player] = self_prob
             elif player is self.hitler:
-                self.probabilities[player] = (1, 1)
+                self.probabilities[player] = (1.0, 1.0)
             else:
                 self.probabilities[player] = (fascist_prob, hitler_prob)
 
     def set_prob(self, player, new_prob, new_hitler_prob=None):
-        sub = 2
-        if player in self.fascists:
-            sub = 1
+        new_prob = float(new_prob)
+        sub = 1 if player in self.fascists else 2
         players = len(self.probabilities) - len(self.fascists) - sub
 
         if new_hitler_prob is None:
@@ -67,24 +70,34 @@ class Player:
         if players == 0:
             return
 
-        new_prob = clamp(new_prob, 0, 1)
+        # new_prob = clamp(new_prob, 0, 1)
+        # change_prob = new_prob - self.probabilities[player][0]
+        # change_prob /= players
 
-        change_prob = new_prob - self.probabilities[player][0]
-        change_prob /= players
+        total_prob_fascist = 0
+        for curr_player in self.probabilities:
+            if curr_player not in self.fascists:
+                total_prob_fascist = total_prob_fascist + self.probabilities[curr_player][0]
+
+        if total_prob_fascist == 0 == 0:
+            scale_factor = 1.0
+        else:
+            scale_factor = (self.num_fascists - len(self.fascists))/total_prob_fascist
 
         for curr_player in self.probabilities:
-            if curr_player not in [self.name, player] and curr_player not in self.fascists:
-                curr_prob = clamp(self.probabilities[curr_player][0] - change_prob, 0, 1)
+            if curr_player not in self.fascists and scale_factor != 1:
+                # curr_prob = clamp(self.probabilities[curr_player][0] - change_prob, 0, 1)
+                curr_prob = self.probabilities[curr_player][0] * scale_factor
                 self.probabilities[curr_player] = (curr_prob, new_hitler_prob)
 
     def print_probs(self):
         Log.log_probs('Player {} Probabilities:'.format(self.name))
         prob_fascist, prob_hitler = (0, 0)
         for n in self.probabilities:
-            Log.log_probs('\t{}: {}'.format(n, self.probabilities[n]))
+            Log.log_probs('\t{0}: ({1[0]:.4}, {1[1]:.4})'.format(n, self.probabilities[n]))
             prob_fascist = prob_fascist+self.probabilities[n][0]
             prob_hitler = prob_hitler+self.probabilities[n][1]
-        Log.log_probs('Total: ({}, {})'.format(prob_fascist, prob_hitler))
+        Log.log_probs('Total: ({0:.4}, {1:.4})'.format(prob_fascist, prob_hitler))
 
     def set_strategy(self, strategy_type, strategy):
         self.strategies[strategy_type] = strategy

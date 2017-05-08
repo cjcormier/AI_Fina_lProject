@@ -1,6 +1,7 @@
 from enum import Enum, unique
 from src.cards import Cards
 
+
 @unique
 class BoardStates(Enum):
     NORMAL = 0
@@ -28,4 +29,3 @@ class Board:
         return BoardStates.NORMAL
 
 __all__ = ['BoardStates', 'Board']
-

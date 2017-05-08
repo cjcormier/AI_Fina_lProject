@@ -1,6 +1,5 @@
 from random import randint
 from src.cards import Cards
-from src.logging import Log
 
 
 class Deck:

@@ -26,6 +26,9 @@ class Game:
 
     def run(self):
         rounds = 0
+        Log.log('ROLES')
+        for player in self.players.values():
+            Log.log('{}: {}'.format(player.name, player.role))
         while self.winner is BoardStates.NORMAL:
             rounds += 1
             Log.log_new_round()
@@ -49,6 +52,7 @@ class Game:
         self.winner = self.board.increment_board(next_policy)
         Log.log_next_policy(next_policy)
         self.shoot(next_policy)
+        Log.log_all_probs(self.players)
 
     def elect_new_gov(self):
         rounds_of_voting = 0
@@ -72,17 +76,18 @@ class Game:
         players = self.players.keys()
         chancellor_name = self.chancellor.name if self.chancellor is not None else -1
 
-        names = [x for x in players if x is not chancellor_name]
+        names = [x for x in players if x is not chancellor_name and x is not self.president_name]
         names = [x for x in names if x is not self.prev_pres] if len(self.players) > 5 else names
         Log.log_valid_chancellors(names)
 
         president = self.players[self.president_name]
         chancellor_name = president.choose_chancellor(names)  # limit valid players
         chancellor = self.players[chancellor_name]
+        assert president is not chancellor
         return president, chancellor
 
     def check_hitler_chanc_win(self):
-        Log.log_elected_chancellor(self.chancellor)
+        Log.log_elected_chancellor(self.chancellor, self.board.fascist_board)
         if 4 <= self.board.fascist_board and self.chancellor.role is Role.HITLER:
             self.winner = BoardStates.HITLER_CHANCELLOR
             return True
@@ -113,8 +118,9 @@ class Game:
 
     def analyze_revealed_card(self, next_policy):
         for name, player in self.players.items():
-            player.analyze_revealed_card(self.president.name, self.chancellor.name,
-                                         next_policy, self.deck.total_remaining())
+            if name not in [self.chancellor.name, self.president_name]:
+                player.analyze_revealed_card(self.president.name, self.chancellor.name,
+                                             next_policy, self.deck.total_remaining())
 
     def shoot(self, next_policy):
         fascist_board = self.board.fascist_board

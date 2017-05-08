@@ -19,12 +19,30 @@ class Log:
 
     @staticmethod
     def allow_prob_logging(new_log_prob):
-        Log.can_log_prob = new_log_prob
+        Log.can_log_probs = new_log_prob
 
     @staticmethod
     def log_probs(probs_message):
         if Log.can_log_probs:
             Log.log(probs_message)
+
+    @staticmethod
+    def log_all_probs(players):
+        if Log.can_log_probs:
+            Log.log('\nProbabilities (Fascist/Hitler)')
+            names = players.keys()
+            header = '\t\t'+'\t\t\t'.join([str(x) for x in names])
+            Log.log(header)
+            for row in names:
+                probs = players[row].probabilities
+                temp = '{} ({})'.format(row, players[row].role.name[0])
+                msg = temp + '\t'
+                for entry in names:
+                    temp = '{:.2}/{:.2}'.format(probs[entry][0], probs[entry][1])
+                    padding = '\t'*(3 - int(len(temp)/4))
+                    msg += temp + padding
+                Log.log(msg)
+
 
     @staticmethod
     def log(*args):
@@ -93,15 +111,17 @@ class Log:
         Log.log('Valid chancellors: {}'.format(valid_chancellors))
 
     @staticmethod
-    def log_elected_chancellor(chancellor):
-        message = 'Late game Fascism; if the chancellor is Hitler, the Fascists win.'
-        Log.log(message)
-        if chancellor.role is Role.HITLER:
-            message = 'Chancellor {} is Hitler, fascists win!'.format(chancellor.name)
-        else:
-            message = 'Chancellor {} not is Hitler, you live to play another day!'
-            message = message.format(chancellor.name)
-        Log.log(message)
+    def log_elected_chancellor(chancellor, fascist_track):
+
+        if 4 <= fascist_track:
+            message = 'Late game Fascism; if the chancellor is Hitler, the Fascists win.'
+            Log.log(message)
+            if chancellor.role is Role.HITLER:
+                message = 'Chancellor {} is Hitler, fascists win!'.format(chancellor.name)
+            else:
+                message = 'Chancellor {} not is Hitler, you live to play another day!'
+                message = message.format(chancellor.name)
+            Log.log(message)
 
     @staticmethod
     def log_policy(drawn_policies, p_pick, c_pick):

@@ -20,19 +20,20 @@ class StrategyTypes(Enum):
 
 
 def choose_liberal_chancellor(player, valid_players):
+    assert player.name not in valid_players
     min_prob = 1
     players = []
     probabilities = player.probabilities
     name = player.name
     for curr_player in valid_players:
-        if curr_player != name:
-            prob = probabilities[curr_player][0]
-            if prob < min_prob:
-                min_prob = prob
-                players = [curr_player]
-            elif prob == min_prob:
-                players.append(curr_player)
-    return random.choice(players)
+        prob = probabilities[curr_player][0]
+        if prob < min_prob:
+            min_prob = prob
+            players = [curr_player]
+        elif prob == min_prob:
+            players.append(curr_player)
+    choices = players if len(players) > 0 else valid_players
+    return random.choice(choices)
 
 
 def choose_fascist_chancellor(player, valid_players):
@@ -72,7 +73,8 @@ def choose_not_hitler_chancellor(curr_player, valid_players):
         if curr_player in probabilities:
             if probabilities[curr_player][1] != 1:
                 fascist_players.append(curr_player)
-    return random.choice(fascist_players)
+    choices = fascist_players if len(fascist_players) > 0 else valid_players
+    return random.choice(choices)
 
 
 def president_choose_liberal_cards(player, chancellor, cards):
@@ -119,7 +121,7 @@ def chancellor_choose_liberal_cards(player, president, cards, deck):
         card = Cards.FASCIST
         player.set_prob(president, new_prob)
         Log.log_probs(message.format(player.name, president))
-        player.print_probs()
+        # player.print_probs()
     return card
 
 
@@ -175,6 +177,7 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
     prob_pl = 1 - prob_pf
     prob_president = 0
     prob_chancellor = 0
+
     if card is Cards.LIBERAL:
         prev_pres = prob_pl
         prev_chanc = prob_cl
@@ -194,6 +197,7 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
             prob_president = (prob_lll + prob_fll + prob_ffl*prob_cl)*prob_pl
             prob_president /= prob_l
             prob_president = 1-prob_president
+
             prob_chancellor = (prob_lll + prob_fll + prob_ffl*prob_pl)*prob_cl
             prob_chancellor /= prob_l
             prob_chancellor = 1-prob_chancellor
@@ -211,7 +215,7 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
 
     message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
     Log.log_probs(message.format(player.name, president, chancellor))
-    player.print_probs()
+    # player.print_probs()
 
 adjust_factor = 2
 

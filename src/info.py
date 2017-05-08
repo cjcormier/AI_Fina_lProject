@@ -1,5 +1,6 @@
 from enum import Enum, unique
 
+
 @unique
 class InfoTypes(Enum):
     REVEALED_CARD = 1
