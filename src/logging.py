@@ -27,21 +27,32 @@ class Log:
             Log.log(probs_message)
 
     @staticmethod
-    def log_all_probs(players):
+    def log_all_probs(active_players, all_players):
         if Log.can_log_probs:
             Log.log('\nProbabilities (Fascist/Hitler)')
-            names = players.keys()
+            names = active_players.keys()
+            all_names = all_players.keys()
             header = '\t\t'+'\t\t\t'.join([str(x) for x in names])
             Log.log(header)
-            for row in names:
-                probs = players[row].probabilities
-                temp = '{} ({})'.format(row, players[row].role.name[0])
+
+            for row in all_names:
+                temp = '{} ({})'.format(row, all_players[row].role.name[0])
                 msg = temp + '\t'
                 for entry in names:
-                    temp = '{:.2}/{:.2}'.format(probs[entry][0], probs[entry][1])
+                    probs = active_players[entry].probabilities
+                    temp = '{:.2}/{:.2}'.format(probs[row][0], probs[row][1])
                     padding = '\t'*(3 - int(len(temp)/4))
                     msg += temp + padding
                 Log.log(msg)
+            msg = 'Total:' + '\t'
+            for entry in names:
+                probs = active_players[entry].probabilities
+                total = sum([x[0] for x in probs.values()]), sum([x[1] for x in probs.values()])
+                temp = '{:.2}/{:.2}'.format(total[0], total[1])
+                padding = '\t'*(3 - int(len(temp)/4))
+                msg += temp + padding
+            Log.log(msg)
+
 
 
     @staticmethod

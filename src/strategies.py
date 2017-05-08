@@ -179,8 +179,6 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
     prob_chancellor = 0
 
     if card is Cards.LIBERAL:
-        prev_pres = prob_pl
-        prev_chanc = prob_cl
         if prob_lll == 0:
             if prob_pl == 0:
                 prob_chancellor = 1
@@ -202,27 +200,22 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
             prob_chancellor /= prob_l
             prob_chancellor = 1-prob_chancellor
     else:
-        prev_pres = prob_pl
-        prev_chanc = prob_cl
         prob_f = prob_fff + prob_ffl*(prob_cf+prob_pf-prob_cf*prob_pf) + prob_fll*prob_cf*prob_pf
         prob_president = (prob_fff+prob_ffl+prob_fll*prob_cf) * prob_pf
         prob_president /= prob_f
         prob_chancellor = (prob_fff+prob_ffl+prob_fll*prob_pf) * prob_cf
         prob_chancellor /= prob_f
 
-    player.set_prob(president, adjust(prob_president, prev_pres))
-    player.set_prob(chancellor, adjust(prob_chancellor, prev_chanc))
+    player.set_prob(president, prob_president)
+    player.set_prob(chancellor, prob_chancellor)
 
     message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
     Log.log_probs(message.format(player.name, president, chancellor))
     # player.print_probs()
 
-adjust_factor = 2
 
-
-def set_adjust_factor(new_adjust):
-    global adjust_factor
-    adjust_factor = new_adjust
+def alt_analyze_revealed_card(player, president, chancellor, card, deck):
+    pass
 
 
 def default_prob(player):
@@ -230,23 +223,6 @@ def default_prob(player):
     unknown_fascists = player.num_fascists - len(player.fascists)
     unknown_players = len(set(probabilities.keys())-set(player.fascists)-{player.name})
     return unknown_fascists/unknown_players
-
-
-def adjust(prob, old_prob):
-    if prob > 1:
-        prob = 1
-    elif prob < 0:
-        prob = 0
-    global adjust_factor
-    if old_prob*prob == 0 or prob == old_prob:
-        return prob
-
-    pos_prob_range = 1 - old_prob
-
-    if prob > old_prob:
-        return pow((prob-old_prob)/pos_prob_range, adjust_factor) * pos_prob_range + old_prob
-    else:
-        return pow(prob/old_prob, adjust_factor) * old_prob
 
 
 def analyze_chancellor_card(player, chancellor, pres_cards, chanc_card):
@@ -263,18 +239,18 @@ def analyze_chancellor_card(player, chancellor, pres_cards, chanc_card):
 #     one third as likely
 
 
-def liberal_shoot(player):
-    return player.max_fascist()
+def liberal_shoot(player, valid_players):
+    return player.max_fascist(valid_players)
 
 
-def fascist_shoot(player):
-    liberal_players = [x for x in player.probabilities.keys() if x not in player.fascists
+def fascist_shoot(player, valid_players):
+    liberal_players = [x for x in valid_players if x not in player.fascists
                        and x is not player.hitler]
     return random.choice(liberal_players)
 
 
-def hitler_shoot(player):
-    return player.min_fascist()
+def hitler_shoot(player, valid_players):
+    return player.min_fascist(valid_players)
 
 
 def pass_strat(*args):
@@ -301,15 +277,15 @@ def vote_true(player, president, chancellor):
     return True
 
 
-def shoot_random(player):
-    return random.choice(list(player.probabilities.keys()))
+def shoot_random(player, valid_players):
+    return random.choice(valid_players)
 
 __all__ = ['StrategyTypes', 'choose_liberal_chancellor', 'choose_fascist_chancellor',
            'h_choose_fascist_chancellor', 'choose_not_hitler_chancellor',
            'president_choose_liberal_cards', 'president_give_choice',
            'president_choose_fascist_cards', 'chancellor_choose_liberal_cards',
            'chancellor_choose_fascist_cards', 'standard_liberal_vote', 'standard_fascist_vote',
-           'analyze_revealed_card', 'set_adjust_factor', 'analyze_chancellor_card',
+           'analyze_revealed_card', 'analyze_chancellor_card',
            'liberal_shoot', 'fascist_shoot', 'hitler_shoot', 'pass_strat',
            'random_choose_chancellor', 'random_president_cards', 'random_chancellor_cards',
            'vote_true', 'shoot_random']

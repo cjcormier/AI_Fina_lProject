@@ -11,6 +11,7 @@ class Game:
     def __init__(self, num_players, allow_shoots=False, log=None):
         self.num_players = num_players
         self.players = self.assign_roles()
+        self.orig_players = dict(self.players)
         self.allow_shoots = allow_shoots
         self.board = Board()
         self.deck = Deck(6, 11)
@@ -52,7 +53,7 @@ class Game:
         self.winner = self.board.increment_board(next_policy)
         Log.log_next_policy(next_policy)
         self.shoot(next_policy)
-        Log.log_all_probs(self.players)
+        Log.log_all_probs(self.players, self.orig_players)
 
     def elect_new_gov(self):
         rounds_of_voting = 0
@@ -125,7 +126,7 @@ class Game:
     def shoot(self, next_policy):
         fascist_board = self.board.fascist_board
         if 4 <= fascist_board <= 5 and next_policy is Cards.FASCIST and self.allow_shoots:
-            player_shot = self.president.shoot()
+            player_shot = self.president.shoot(list(self.players.keys()))
             Log.log_shot_players(self.president, self.players[player_shot])
             if self.players[player_shot].role is Role.HITLER:
                 self.winner = BoardStates.HITLER_SHOT

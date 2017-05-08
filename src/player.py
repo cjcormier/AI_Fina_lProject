@@ -129,30 +129,35 @@ class Player:
         self.strategies[StrategyTypes.ANALYZE_CHANCELLOR_CARD](self, chancellor, pres_card,
                                                                chanc_card)
 
-    def shoot(self):
-        return self.strategies[StrategyTypes.SHOOT](self)
+    def shoot(self, valid_players):
+        return self.strategies[StrategyTypes.SHOOT](self, valid_players)
 
     def remove_player(self, player):
-        del self.probabilities[player]
-        if player in self.fascists:
-            self.fascists.remove(player)
+        # del self.probabilities[player]
+        # if player in self.fascists:
+        #     self.fascists.remove(player)
+        pass
 
-    def max_fascist(self):
+    def max_fascist(self, choices=None):
         probabilities = self.probabilities
         max_prob = 0
         max_player = None
-        for player in probabilities:
+        if choices is None:
+            choices = probabilities
+        for player in choices:
             prob = probabilities[player][0]
             if prob >= max_prob:
                 max_player = player
                 max_prob = prob
         return max_player
 
-    def min_fascist(self):
+    def min_fascist(self, choices=None):
         probabilities = self.probabilities
         min_prob = 1
         min_player = None
-        for player in probabilities:
+        if choices is None:
+            choices = probabilities
+        for player in choices:
             prob = probabilities[player][0]
             if prob <= min_prob:
                 min_player = player

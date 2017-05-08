@@ -2,7 +2,6 @@ import argparse
 
 from set_strats import *
 from src.game import Game
-from src.strategies import set_adjust_factor
 from src.roles import Role
 from src.logging import Log
 
@@ -27,7 +26,6 @@ args = parser.parse_args()
 
 
 def main():
-    set_adjust_factor(.3)
     Log.allow_prob_logging(args.v)
     game = Game(args.p, True)
 
