@@ -109,7 +109,7 @@ class Game:
             else:
                 nay.append(player.name)
         Log.log_votes(self.president, self.chancellor, ja, nay)
-        return len(ja) >= (len(self.players) / 2)
+        return len(ja)*2 >= len(self.players)
 
     def analyze_revealed_card(self, next_policy):
         for name, player in self.players.items():

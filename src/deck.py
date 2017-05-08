@@ -16,10 +16,8 @@ class Deck:
             self.facDeck += self.facDisc
             self.libDisc = 0
             self.facDisc = 0
-            Log.log('Shuffling Deck')
 
         card = randint(0, self.libDeck + self.facDeck - 1)
-        # Log.log("Liberal left: {}, Fascist left: {}".format(self.libDeck, self.facDeck))
         if card < self.libDeck:
             self.libDeck -= 1
             card = Cards.LIBERAL
