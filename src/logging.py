@@ -32,7 +32,7 @@ class Log:
             Log.log('\nProbabilities (Fascist/Hitler)')
             names = active_players.keys()
             all_names = all_players.keys()
-            header = '\t\t'+'\t\t\t'.join([str(x) for x in names])
+            header = '\t\t'+'\t\t\t\t\t'.join([str(x) for x in names])
             Log.log(header)
 
             for row in all_names:
@@ -40,8 +40,8 @@ class Log:
                 msg = temp + '\t'
                 for entry in names:
                     probs = active_players[entry].probabilities
-                    temp = '{:.2}/{:.2}'.format(probs[row][0], probs[row][1])
-                    padding = '\t'*(3 - int(len(temp)/4))
+                    temp = '{:.4}/{:.4}'.format(probs[row][0], probs[row][1])
+                    padding = '\t'*(5 - int(len(temp)/4))
                     msg += temp + padding
                 Log.log(msg)
             msg = 'Total:' + '\t'
@@ -49,11 +49,9 @@ class Log:
                 probs = active_players[entry].probabilities
                 total = sum([x[0] for x in probs.values()]), sum([x[1] for x in probs.values()])
                 temp = '{:.2}/{:.2}'.format(total[0], total[1])
-                padding = '\t'*(3 - int(len(temp)/4))
+                padding = '\t'*(5 - int(len(temp)/4))
                 msg += temp + padding
             Log.log(msg)
-
-
 
     @staticmethod
     def log(*args):

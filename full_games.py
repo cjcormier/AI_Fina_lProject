@@ -2,7 +2,6 @@ from set_strats import *
 from src.roles import Role
 from src.board import BoardStates
 from src.game import Game
-from src.strategies import set_adjust_factor
 from src.logging import Log
 
 
@@ -30,6 +29,7 @@ def main():
                                 h_chanc = 0
                                 total_anarchies = 0
 
+                                Log.allow_logging(False)
                                 for i in range(games):
                                     game = Game(num_players, True)
 
@@ -42,14 +42,12 @@ def main():
                                             set_hitler_strats(player, choose_c=hcc, p_cards=hcpc,
                                                               c_cards=hccc, vote=hv)
 
-                                    Log.allow_logging(False)
-                                    winner, fascist_board, liberal_board, anarchies = \
-                                        game.run()
-                                    Log.allow_logging(True)
+                                    winner, fascist_board, liberal_board, anarchies = game.run()
 
                                     total_anarchies += anarchies
                                     f_policies += fascist_board
                                     l_policies += liberal_board
+
                                     if winner is BoardStates.LIBERAL_WIN:
                                         l_wins += 1
                                     elif winner is BoardStates.FASCIST_WIN:
@@ -61,6 +59,7 @@ def main():
                                         l_wins += 1
                                         h_shot += 1
 
+                                Log.allow_logging(True)
                                 Log.log(message.format(num_players, games, l_wins, f_wins, h_chanc,
                                                        h_shot, l_policies, f_policies,
                                                        l_policies+f_policies, total_anarchies/games,

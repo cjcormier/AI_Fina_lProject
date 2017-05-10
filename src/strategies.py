@@ -1,6 +1,5 @@
 import random
 from enum import Enum, unique
-from math import pow
 
 from src.cards import Cards
 from src.roles import Role
@@ -24,7 +23,6 @@ def choose_liberal_chancellor(player, valid_players):
     min_prob = 1
     players = []
     probabilities = player.probabilities
-    name = player.name
     for curr_player in valid_players:
         prob = probabilities[curr_player][0]
         if prob < min_prob:
@@ -38,12 +36,10 @@ def choose_liberal_chancellor(player, valid_players):
 
 def choose_fascist_chancellor(player, valid_players):
     probabilities = player.probabilities
-    name = player.name
     fascist_players = []
     for valid_player in valid_players:
-        if valid_player != name:
-            if probabilities[valid_player][0] == 1:
-                fascist_players.append(valid_player)
+        if probabilities[valid_player][0] == 1:
+            fascist_players.append(valid_player)
     if len(fascist_players) == 0:
         return choose_liberal_chancellor(player, valid_players)
     return random.choice(fascist_players)
@@ -53,15 +49,14 @@ def h_choose_fascist_chancellor(player, valid_players):
     max_prob = 0
     players = []
     probabilities = player.probabilities
-    name = player.name
-    for curr_player in valid_players:
-        if curr_player != name:
-            prob = probabilities[curr_player][0]
-            if prob > max_prob:
-                max_prob = prob
-                players = [curr_player]
-            elif prob == max_prob:
-                players.append(curr_player)
+    for valid_player in valid_players:
+        prob = probabilities[valid_player][0]
+        if prob > max_prob:
+            max_prob = prob
+            players = [valid_player]
+        elif prob == max_prob:
+            players.append(valid_player)
+    players = players if len(players) > 0 else valid_players
     return random.choice(players)
 
 
@@ -112,16 +107,30 @@ def chancellor_choose_liberal_cards(player, president, cards, deck):
 
     prob_fff = multi_3(f_remaining) / multi_3(tot_remaining)
     prob_ffl = 3 * l_remaining * multi_2(f_remaining) / multi_3(tot_remaining)
-    old_f_prob = player.probabilities[president][0]
+    prob_fll = 3 * f_remaining * multi_2(l_remaining) / multi_3(tot_remaining)
+    prob_lll = multi_3(l_remaining) / multi_3(tot_remaining)
+    default_fp = default_prob(player)
+    default_lp = 1 - default_fp
+    old_fp = player.probabilities[president][0]
     if Cards.LIBERAL in cards:
         card = Cards.LIBERAL
+        cards.pop()
+        if Cards.LIBERAL in cards:
+            new_prob = 1 - (prob_lll+prob_fll)*default_lp/(prob_lll+prob_fll*default_lp)
+            message = 'Chancellor {} is adjusting prob for player {} due to receiving 2 Liberal Cards'
+        else:
+            new_prob = (prob_fll*default_fp)/(prob_ffl*default_lp+prob_fll*default_fp)
+            message = 'Chancellor {} is adjusting prob for player {} due to receiving 1 Liberal Card' \
+                      'and 1 Fascist Card'
     else:
-        new_prob = (prob_fff+prob_ffl)*old_f_prob/(prob_fff+prob_ffl*old_f_prob)
+        new_prob = 1 - (prob_fff+prob_ffl)*default_fp/(prob_fff+prob_ffl*default_fp)
         message = 'Chancellor {} is adjusting prob for player {} due to receiving 2 Fascist Cards'
         card = Cards.FASCIST
-        player.set_prob(president, new_prob)
-        Log.log_probs(message.format(player.name, president))
         # player.print_probs()
+
+    new_prob = rbe_markov_analysis(new_prob, old_fp, default_fp)
+    player.set_prob(president, new_prob)
+    Log.log_probs(message.format(player.name, president))
     return card
 
 
@@ -171,24 +180,27 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
     prob_ffl = 3*l_remaining*multi_2(f_remaining)/tot_remaining_3
     prob_fll = 3*f_remaining*multi_2(l_remaining)/tot_remaining_3
     prob_lll = multi_3(l_remaining)/tot_remaining_3
-    prob_cf = player.probabilities[president][0]
-    prob_pf = player.probabilities[chancellor][0]
+    orig_prob = default_prob(player)
+    prob_cf = orig_prob
+    prob_pf = orig_prob
     prob_cl = 1 - prob_cf
     prob_pl = 1 - prob_pf
-    prob_president = 0
-    prob_chancellor = 0
+    prev_pf = player.probabilities[president][0]
+    prev_cf = player.probabilities[chancellor][0]
+    prob_president = 0.0
+    prob_chancellor = 0.0
 
     if card is Cards.LIBERAL:
         if prob_lll == 0:
             if prob_pl == 0:
-                prob_chancellor = 1
-                prob_president = 0
+                prob_chancellor = 1.0
+                prob_president = 0.0
             elif prob_cl == 0:
-                prob_president = 1
-                prob_chancellor = 0
+                prob_president = 1.0
+                prob_chancellor = 0.0
             elif prob_cf == 0 and prob_pl == 0:
-                prob_president = 0
-                prob_chancellor = 0
+                prob_president = 0.0
+                prob_chancellor = 0.0
         else:
             prob_l = prob_lll + prob_fll*(prob_cl+prob_pl-prob_cl*prob_pl) + \
                      prob_ffl*prob_cl*prob_pl
@@ -206,6 +218,9 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
         prob_chancellor = (prob_fff+prob_ffl+prob_fll*prob_pf) * prob_cf
         prob_chancellor /= prob_f
 
+    prob_president = rbe_markov_analysis(prob_president, prev_pf, orig_prob)
+    prob_chancellor = rbe_markov_analysis(prob_chancellor, prev_cf, orig_prob)
+
     player.set_prob(president, prob_president)
     player.set_prob(chancellor, prob_chancellor)
 
@@ -214,8 +229,19 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
     # player.print_probs()
 
 
-def alt_analyze_revealed_card(player, president, chancellor, card, deck):
-    pass
+def rbe_markov_analysis(inv_sensor_model: float, recursive_term: float, prior: float)->float:
+    if inv_sensor_model == 1 or recursive_term == 1:
+        return inv_sensor_model
+    gama_result = gama(inv_sensor_model, recursive_term, prior)
+    return 1/(1+1/gama_result) if gama_result != 0 else 0
+
+
+def gama(inv_sensor_model: float, recursive_term: float, prior: float)->float:
+    return single_gama(inv_sensor_model) * single_gama(recursive_term) * single_gama(prior)
+
+
+def single_gama(x: float)->float:
+    return x/(1-x)
 
 
 def default_prob(player):
@@ -236,7 +262,6 @@ def analyze_chancellor_card(player, chancellor, pres_cards, chanc_card):
 
         player.known_roles = known_roles
         player.set_prob(chancellor, 1)
-#     one third as likely
 
 
 def liberal_shoot(player, valid_players):

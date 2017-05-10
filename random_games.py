@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 def main():
 
-    games = 1000
+    games = 10000
 
     header = 'Players,Games,Liberal wins,Fascist wins,HC wins,HS wins,L Policies,' \
              'F Policies,Total Policies,Average Anarchies'
@@ -40,6 +40,7 @@ def main():
             h_chanc = 0
             total_anarchies = 0
 
+            Log.allow_logging(False)
             for i in range(games):
                 game = Game(num_players, True)
                 for name, player in game.players.items():
@@ -51,9 +52,7 @@ def main():
                         set_hitler_strats(player, choose_c=args.HCC, p_cards=args.HCPC,
                                           c_cards=args.HCCC, vote=args.HV)
 
-                Log.allow_logging(False)
                 winner, fascist_board, liberal_board, anarchies = game.run()
-                Log.allow_logging(True)
 
                 total_anarchies += anarchies
                 f_policies += fascist_board
@@ -68,6 +67,7 @@ def main():
                 elif winner is BoardStates.HITLER_SHOT:
                     l_wins += 1
                     h_shot += 1
+            Log.allow_logging(True)
             Log.log(message.format(num_players, games, l_wins, f_wins, h_chanc, h_shot,
                                    l_policies, f_policies, l_policies + f_policies,
                                    total_anarchies / games))

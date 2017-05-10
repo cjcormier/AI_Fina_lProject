@@ -21,6 +21,7 @@ def main():
         h_chanc = 0
         total_anarchies = 0
 
+        Log.allow_logging(False)
         for i in range(games):
             game = Game(num_players, allow_shoots=True)
             for name, player in game.players.items():
@@ -31,9 +32,7 @@ def main():
                 elif player.role is Role.HITLER:
                     set_random(player)
 
-            Log.allow_logging(False)
             winner, fascist_board, liberal_board, anarchies = game.run()
-            Log.allow_logging(True)
 
             total_anarchies += anarchies
             f_policies += fascist_board
@@ -48,6 +47,7 @@ def main():
             elif winner is BoardStates.HITLER_SHOT:
                 l_wins += 1
                 h_shot += 1
+        Log.allow_logging(True)
         Log.log(message.format(num_players, games, l_wins, f_wins, h_chanc, h_shot, l_policies,
                                f_policies, l_policies + f_policies, total_anarchies / games))
 

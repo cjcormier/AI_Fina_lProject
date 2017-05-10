@@ -22,7 +22,6 @@ class Game:
         self.president_name = -1
         self.president = None
         self.chancellor = None
-
         self.anarchies = 0
 
     def run(self):
@@ -82,7 +81,7 @@ class Game:
         Log.log_valid_chancellors(names)
 
         president = self.players[self.president_name]
-        chancellor_name = president.choose_chancellor(names)  # limit valid players
+        chancellor_name = president.choose_chancellor(names)
         chancellor = self.players[chancellor_name]
         assert president is not chancellor
         return president, chancellor
@@ -159,7 +158,7 @@ class Game:
         for player in names:
             players[player].set_role(Role.LIBERAL, {Role.FASCIST: [], Role.HITLER: None})
         for player in fascists:
-            players[player].set_role(Role.FASCIST, {Role.FASCIST: fascists, Role.HITLER: hitler})
+            players[player].set_role(Role.FASCIST, {Role.FASCIST: list(fascists), Role.HITLER: hitler})
 
         h_fascists = fascists if self.num_players < 6 else []
         players[hitler].set_role(Role.HITLER, {Role.FASCIST: h_fascists, Role.HITLER: hitler})
