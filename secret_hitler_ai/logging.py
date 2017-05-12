@@ -1,4 +1,4 @@
-from src.roles import Role
+from secret_hitler_ai.roles import Role
 
 
 class Log:

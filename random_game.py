@@ -1,9 +1,9 @@
 import argparse
 
 from set_strats import *
-from src.game import Game
-from src.roles import Role
-from src.logging import Log
+from secret_hitler_ai.game import Game
+from secret_hitler_ai.roles import Role
+from secret_hitler_ai.logging import Log
 
 parser = argparse.ArgumentParser(description='AI Final Project Secret Hitler')
 parser.add_argument('-LCPC', help='Strategy for Liberal choosing president cards.',

@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from src.cards import Cards
+from secret_hitler_ai.cards import Cards
 
 
 @unique

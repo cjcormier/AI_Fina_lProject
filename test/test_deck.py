@@ -1,7 +1,7 @@
-from src.deck import Deck
-from src.cards import Cards
+from secret_hitler_ai.deck import Deck
+from secret_hitler_ai.cards import Cards
 import random
-from src.logging import Log
+from secret_hitler_ai.logging import Log
 
 liberal = 0
 fascists = 0

@@ -1,10 +1,10 @@
 from random import shuffle
-from src.deck import *
-from src.player import *
-from src.board import *
-from src.roles import Role
-from src.logging import Log
-from src.cards import Cards
+from secret_hitler_ai.deck import *
+from secret_hitler_ai.player import *
+from secret_hitler_ai.board import *
+from secret_hitler_ai.roles import Role
+from secret_hitler_ai.logging import Log
+from secret_hitler_ai.cards import Cards
 
 
 class Game:
@@ -164,4 +164,4 @@ class Game:
         players[hitler].set_role(Role.HITLER, {Role.FASCIST: h_fascists, Role.HITLER: hitler})
         return players
 
-__all__ = [Game]
+__all__ = ["Game"]

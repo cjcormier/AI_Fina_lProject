@@ -1,8 +1,8 @@
 from set_strats import *
-from src.roles import Role
-from src.board import BoardStates
-from src.game import Game
-from src.logging import Log
+from secret_hitler_ai.roles import Role
+from secret_hitler_ai.board import BoardStates
+from secret_hitler_ai.game import Game
+from secret_hitler_ai.logging import Log
 
 
 def main():

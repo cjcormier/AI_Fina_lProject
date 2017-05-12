@@ -1,4 +1,4 @@
-from src.strategies import *
+from secret_hitler_ai.strategies import *
 
 l_choose_chancellor = [
     choose_liberal_chancellor

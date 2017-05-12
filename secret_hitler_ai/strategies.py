@@ -1,9 +1,9 @@
 import random
 from enum import Enum, unique
 
-from src.cards import Cards
-from src.roles import Role
-from src.logging import Log
+from secret_hitler_ai.cards import Cards
+from secret_hitler_ai.roles import Role
+from secret_hitler_ai.logging import Log
 
 
 @unique

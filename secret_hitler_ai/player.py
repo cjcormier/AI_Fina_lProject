@@ -1,6 +1,6 @@
-from src.strategies import *
-from src.logging import Log
-from src.roles import Role
+from secret_hitler_ai.strategies import *
+from secret_hitler_ai.logging import Log
+from secret_hitler_ai.roles import Role
 
 
 class Player:
