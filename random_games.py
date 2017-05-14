@@ -1,7 +1,7 @@
 import argparse
 
 from set_strats import *
-from secret_hitler_ai.roles import Role
+from secret_hitler_ai.role import Role
 from secret_hitler_ai.board import BoardStates
 from secret_hitler_ai.game import Game
 from secret_hitler_ai.logging import Log

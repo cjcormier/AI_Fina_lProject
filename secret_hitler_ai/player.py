@@ -1,50 +1,83 @@
-from secret_hitler_ai.strategies import *
-from secret_hitler_ai.logging import Log
-from secret_hitler_ai.roles import Role
+"""Contains the classes for the players."""
+from secret_hitler_ai.role import Role
+from secret_hitler_ai.strategies import StrategyTypes as st
+from typing import *
+
+Name = Union[str, int]
+Prob = Union[float, int]
+
+
+class RoleProbs(NamedTuple):
+    """Probability that someone is fascist or hitler."""
+
+    fascist: Prob
+    hitler: Prob
+
+    @property
+    def ffascist(self)->float:
+        """
+        Return the fascist probability as a float.
+        :return: The fascist probability.
+        """
+        return float(self.fascist)
+
+    @property
+    def fhitler(self)->float:
+        """
+        Return the hitler probability as a float.
+        :return: The hitler probability.
+        """
+        return float(self.hitler)
 
 
 class Player:
-    def __init__(self, name, player_names, num_fascists):
+    """Contains information and classes about the player."""
+    def __init__(self, name: Name, player_names: List[Name], num_fascists: int):
         self.name = name
         self.role = None
-        self.strategy = None
-        self.fascists = []
+        self.fascists: List[Name] = []
         self.hitler = None
         self.num_fascists = num_fascists
-        self.strategies = {}
-        self.probabilities = {}
+        self.strats: Dict[st, Callable[..., ...]] = {}
+        self.probabilities: Dict[Name, RoleProbs] = {}
+        self.initial_probs = RoleProbs
         for player_name in player_names:
-            self.probabilities[player_name] = None
+            self.probabilities[player_name] = RoleProbs(0, 0)
 
-    def set_liberal(self):
-        fascist_prob = self.num_fascists / (len(self.probabilities)-1)
-        hitler_prob = 1 / (len(self.probabilities)-1)
-        for player in self.probabilities:
-            if player == self.name:
-                self.probabilities[player] = (0, 0)
-            else:
-                self.probabilities[player] = (fascist_prob, hitler_prob)
-
-    def set_role(self, role, known_roles):
+    def set_roles(self, role: Role, known_roles: Dict[Role, List[Name]]):
+        """Sets the role of the player as well as the known roles of the other players.
+        This should be invoked only before the start of the game.
+        
+        :param role: The Role of the player.
+        :param known_roles: The roles that the player knows.
+        """
         self.role = role
-        fascist_prob = self.num_fascists / (len(self.probabilities) - 1)
-        hitler_prob = 1 / (len(self.probabilities) - 1)
 
         if role is Role.FASCIST:
-            self.init_prob(known_roles, 0, 0, (1, 0))
+            self.initial_probs = RoleProbs(0, 0)
+            self.initialize_prob(known_roles, RoleProbs(1, 0))
         elif role is Role.LIBERAL:
-            self.init_prob(known_roles, fascist_prob, hitler_prob, (0, 0))
+            fascist_prob = self.num_fascists / (len(self.probabilities) - 1)
+            hitler_prob = 1 / (len(self.probabilities) - 1)
+            self.initial_probs = RoleProbs(fascist_prob, hitler_prob)
+            self.initialize_prob(known_roles, RoleProbs(0, 0))
         elif role is Role.HITLER:
             if len(self.probabilities) > 6:
                 fascist_prob = (self.num_fascists-1) / (len(self.probabilities)-1)
-                self.init_prob(known_roles, fascist_prob, 0, (1, 1))
+                self.initial_probs = RoleProbs(fascist_prob, 0)
             else:
-                self.init_prob(known_roles, 0, 0, (1, 1))
+                self.initial_probs = RoleProbs(0, 0)
+            self.initialize_prob(known_roles, RoleProbs(1, 1))
 
-    def init_prob(self, known_roles, fascist_prob, hitler_prob, self_prob):
-        fascist_prob = float(fascist_prob)
-        hitler_prob = float(hitler_prob)
-        self_prob = (float(self_prob[0]), float(self_prob[1]))
+    def initialize_prob(self, known_roles: Dict[Role, List[Name]],
+                        self_prob: RoleProbs):
+        """Initializes the probabilities for the other players.
+        
+        :param known_roles: The known roles.
+        :param self_prob: The probability that 
+        """
+        fascist_prob = self.initial_probs.fascist
+        hitler_prob = self.initial_probs.hitler
 
         self.fascists = known_roles[Role.FASCIST]
         self.hitler = known_roles[Role.HITLER]
@@ -52,23 +85,32 @@ class Player:
             self.fascists += [known_roles[Role.HITLER]]
         for player in self.probabilities:
             if player in self.fascists:
-                self.probabilities[player] = (1.0, 0.0)
+                self.probabilities[player] = RoleProbs(1, 0)
             elif player is self.name:
                 self.probabilities[player] = self_prob
             elif player is self.hitler:
-                self.probabilities[player] = (1.0, 1.0)
+                self.probabilities[player] = RoleProbs(1, 1)
             else:
-                self.probabilities[player] = (fascist_prob, hitler_prob)
+                self.probabilities[player] = RoleProbs(fascist_prob, hitler_prob)
 
-    def set_prob(self, player, new_prob, hitler_prob=None):
-        # assert new_prob <= 1
-        new_prob = float(new_prob)
-        if new_prob != self.probabilities[player]:
-            hitler_prob = hitler_prob if hitler_prob is not None else self.probabilities[player][1]
-            self.probabilities[player] = (new_prob, hitler_prob)
+    def set_prob(self, player, fascist_prob: Prob, hitler_prob: Optional[Prob]=None):
+        """Sets the probability for the given player.
+        
+        :param player: Player to set the new probabilities.
+        :param fascist_prob: The new fascist probability.
+        :param hitler_prob: The new hitler probability
+        """
+        fascist_prob = float(fascist_prob)
+        if fascist_prob != self.probabilities[player]:
+            if hitler_prob is None:
+                hitler_prob = self.probabilities[player][1]
+            self.probabilities[player] = RoleProbs(fascist_prob, hitler_prob)
             self.adjust_probs()
 
     def adjust_probs(self):
+        """
+        Adjusts the probability table so that it stays within the proper bounds
+        """
         sum_prob = sum([prob[0] for x, prob in self.probabilities.items() if x not in self.fascists])
         scale_factor = 1.0 if sum_prob == 0 else (self.num_fascists - len(self.fascists))/sum_prob
 
@@ -76,7 +118,7 @@ class Player:
         for curr_player, curr_probs in self.probabilities.items():
             if curr_player not in self.fascists:
                 next_fascist_prob = curr_probs[0] * scale_factor
-                self.probabilities[curr_player] = (next_fascist_prob, curr_probs[1])
+                self.probabilities[curr_player] = RoleProbs(next_fascist_prob, curr_probs[1])
         #         if next_fascist_prob > 1:
         #             recurse = True
         #             self.probabilities[curr_player] = (1.0, curr_probs[1])
@@ -84,60 +126,59 @@ class Player:
         # if recurse:
         #     self.adjust_probs()
 
-    def print_probs(self):
-        Log.log_probs('Player {} Probabilities:'.format(self.name))
-        prob_fascist, prob_hitler = (0, 0)
-        for n in self.probabilities:
-            Log.log_probs('\t{0}: ({1[0]:.4}, {1[1]:.4})'.format(n, self.probabilities[n]))
-            prob_fascist = prob_fascist+self.probabilities[n][0]
-            prob_hitler = prob_hitler+self.probabilities[n][1]
-        Log.log_probs('Total: ({0:.4}, {1:.4})'.format(prob_fascist, prob_hitler))
-
     def set_strategy(self, strategy_type, strategy):
-        self.strategies[strategy_type] = strategy
+        self.strats[strategy_type] = strategy
 
     def set_strategies(self, strategies):
-        self.strategies = strategies
+        self.strats.update(strategies)
 
     def choose_chancellor(self, valid_players_names):
-        return self.strategies[StrategyTypes.CHOOSE_CHANCELLOR](self, valid_players_names)
+        return self.strats[st.CHOOSE_CHANCELLOR](self, valid_players_names)
 
     def chancellor_pick(self, president_name, cards, deck):
-        return self.strategies[StrategyTypes.CHANCELLOR_CARDS](self, president_name, cards, deck)
+        return self.strats[st.CHANCELLOR_CARDS](self, president_name, cards, deck)
 
     def president_pick(self, chancellor_name, cards):
-        cards = self.strategies[StrategyTypes.PRESIDENT_CARDS](self, chancellor_name, cards)
+        cards = self.strats[st.PRESIDENT_CARDS](self, chancellor_name, cards)
         return cards
 
     def vote(self, president_name, chancellor_name):
-        return self.strategies[StrategyTypes.VOTE](self, chancellor_name, president_name)
+        return self.strats[st.VOTE](self, chancellor_name, president_name)
 
     def analyze_vote(self, president_name, chancellor_name, votes):
         pass
 
     def analyze_revealed_card(self, chancellor, president, card, remaining):
-        self.strategies[StrategyTypes.ANALYZE_REVEALED_CARD](self, chancellor, president,
-                                                             card, remaining)
+        self.strats[st.ANALYZE_REVEALED_CARD](self, chancellor, president, card, remaining)
 
     def analyze_chancellor_card(self, chancellor, pres_card, chanc_card):
-        self.strategies[StrategyTypes.ANALYZE_CHANCELLOR_CARD](self, chancellor, pres_card,
-                                                               chanc_card)
+        self.strats[st.ANALYZE_CHANCELLOR_CARD](self, chancellor, pres_card, chanc_card)
 
     def shoot(self, valid_players):
-        return self.strategies[StrategyTypes.SHOOT](self, valid_players)
+        return self.strats[st.SHOOT](self, valid_players)
 
-    def remove_player(self, player):
+    def remove_player(self, player: Name):
+        """Remove a player that has been shot. :class:`role.Role`
+        
+        :param player: Player to remove.
+        """
         # del self.probabilities[player]
         # if player in self.fascists:
         #     self.fascists.remove(player)
         pass
 
-    def max_fascist(self, choices=None):
+    def max_fascist(self, choices: List[Name]=list())->Name:
+        """Return the player who is most likely to be fascist.
+        
+        :param choices: The list of valid players to choose from, empty list implies all 
+            players are valid.
+        :return: The player who is most likely to be fascist.
+        """
         probabilities = self.probabilities
         max_prob = 0
         max_player = None
-        if choices is None:
-            choices = probabilities
+        if len(choices) == 0:
+            choices = self.probabilities.keys()
         for player in choices:
             prob = probabilities[player][0]
             if prob >= max_prob:
@@ -145,11 +186,17 @@ class Player:
                 max_prob = prob
         return max_player
 
-    def min_fascist(self, choices=None):
+    def min_fascist(self, choices:  List[Name]=list())->Name:
+        """Return the player who is least likely to be fascist.
+        
+        :param choices: The list of valid players to choose from, empty list implies all 
+            players are valid.
+        :return: The player who is least likely to be fascist.
+        """
         probabilities = self.probabilities
         min_prob = 1
         min_player = None
-        if choices is None:
+        if len(choices) == 0:
             choices = probabilities
         for player in choices:
             prob = probabilities[player][0]
@@ -158,8 +205,4 @@ class Player:
                 min_prob = prob
         return min_player
 
-
-def clamp(n, minn, maxn):
-    return max(min(maxn, n), minn)
-
-__all__ = ['Player']
+__all__ = ['Player', "RoleProbs"]

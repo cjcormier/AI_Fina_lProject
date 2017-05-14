@@ -1,8 +1,6 @@
 import random
 from enum import Enum, unique
-
-from secret_hitler_ai.cards import Cards
-from secret_hitler_ai.roles import Role
+from secret_hitler_ai.deck import Cards
 from secret_hitler_ai.logging import Log
 
 
@@ -256,11 +254,9 @@ def analyze_chancellor_card(player, chancellor, pres_cards, chanc_card):
         message = "Player {} thinks chancellor {} is a Fascist because they were given a " \
                   "choice and played a fascist policy."
         Log.log(message.format(player.name, chancellor))
-        known_roles = {Role.FASCIST: player.fascists, Role.HITLER: player.hitler}
-        if chancellor not in known_roles[Role.FASCIST]:
-            known_roles[Role.FASCIST].append(chancellor)
+        if chancellor not in player.fascists:
+            player.fascists.append(chancellor)
 
-        player.known_roles = known_roles
         player.set_prob(chancellor, 1)
 
 
@@ -309,8 +305,8 @@ __all__ = ['StrategyTypes', 'choose_liberal_chancellor', 'choose_fascist_chancel
            'h_choose_fascist_chancellor', 'choose_not_hitler_chancellor',
            'president_choose_liberal_cards', 'president_give_choice',
            'president_choose_fascist_cards', 'chancellor_choose_liberal_cards',
-           'chancellor_choose_fascist_cards', 'standard_liberal_vote', 'standard_fascist_vote',
-           'analyze_revealed_card', 'analyze_chancellor_card',
+           'chancellor_choose_fascist_cards', 'standard_liberal_vote',
+           'standard_fascist_vote', 'analyze_revealed_card', 'analyze_chancellor_card',
            'liberal_shoot', 'fascist_shoot', 'hitler_shoot', 'pass_strat',
-           'random_choose_chancellor', 'random_president_cards', 'random_chancellor_cards',
-           'vote_true', 'shoot_random']
+           'random_choose_chancellor', 'random_president_cards',
+           'random_chancellor_cards', 'vote_true', 'shoot_random']

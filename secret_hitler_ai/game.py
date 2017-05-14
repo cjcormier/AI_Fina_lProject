@@ -1,14 +1,15 @@
 from random import shuffle
-from secret_hitler_ai.deck import *
-from secret_hitler_ai.player import *
+
 from secret_hitler_ai.board import *
-from secret_hitler_ai.roles import Role
+from secret_hitler_ai.deck import *
+from secret_hitler_ai.deck import Cards
 from secret_hitler_ai.logging import Log
-from secret_hitler_ai.cards import Cards
+from secret_hitler_ai.player import *
+from secret_hitler_ai.role import Role
 
 
 class Game:
-    def __init__(self, num_players, allow_shoots=False, log=None):
+    def __init__(self, num_players, allow_shoots=False, log=Log()):
         self.num_players = num_players
         self.players = self.assign_roles()
         self.orig_players = dict(self.players)
@@ -16,7 +17,7 @@ class Game:
         self.board = Board()
         self.deck = Deck(6, 11)
         self.winner = BoardStates.NORMAL
-        self.log = log if type(log) is Log else Log()
+        self.log = log
 
         self.prev_pres = -1
         self.president_name = -1
@@ -97,11 +98,12 @@ class Game:
         remaining = self.deck.total_remaining()
         policies = self.deck.draw_hand()
         p_pick = self.president.president_pick(self.chancellor.name, list(policies))
-        c_pick = self.chancellor.chancellor_pick(self.president.name, list(p_pick), remaining)
+        c_pick = self.chancellor.chancellor_pick(self.president.name,
+                                                 list(p_pick), remaining)
         Log.log_policy(policies, p_pick, c_pick)
 
         self.president.analyze_chancellor_card(self.chancellor.name, p_pick, c_pick)
-        self.deck.discard(policies, c_pick)
+        self.deck.discard(policies, [c_pick])
         return c_pick
 
     def vote(self):
@@ -156,12 +158,12 @@ class Game:
             fascists.append(names.pop())
             chosen_fascists += 1
         for player in names:
-            players[player].set_role(Role.LIBERAL, {Role.FASCIST: [], Role.HITLER: None})
+            players[player].set_roles(Role.LIBERAL, {Role.FASCIST: [], Role.HITLER: None})
         for player in fascists:
-            players[player].set_role(Role.FASCIST, {Role.FASCIST: list(fascists), Role.HITLER: hitler})
+            players[player].set_roles(Role.FASCIST, {Role.FASCIST: list(fascists), Role.HITLER: hitler})
 
         h_fascists = fascists if self.num_players < 6 else []
-        players[hitler].set_role(Role.HITLER, {Role.FASCIST: h_fascists, Role.HITLER: hitler})
+        players[hitler].set_roles(Role.HITLER, {Role.FASCIST: h_fascists, Role.HITLER: hitler})
         return players
 
 __all__ = ["Game"]

@@ -1,4 +1,4 @@
-from secret_hitler_ai.roles import Role
+from secret_hitler_ai.role import Role
 
 
 class Log:
@@ -40,15 +40,16 @@ class Log:
                 msg = temp + '\t'
                 for entry in names:
                     probs = active_players[entry].probabilities
-                    temp = '{:.4}/{:.4}'.format(probs[row][0], probs[row][1])
+                    temp = '{0.ffascist:.4}/{0.fhitler:.4}'.format(probs[row])
                     padding = '\t'*(5 - int(len(temp)/4))
                     msg += temp + padding
                 Log.log(msg)
             msg = 'Total:' + '\t'
             for entry in names:
                 probs = active_players[entry].probabilities
-                total = sum([x[0] for x in probs.values()]), sum([x[1] for x in probs.values()])
-                temp = '{:.2}/{:.2}'.format(total[0], total[1])
+                ftotal = sum([x.ffascist for x in probs.values()])
+                htotal = sum([x.fhitler for x in probs.values()])
+                temp = '{:.2}/{:.2}'.format(ftotal, htotal)
                 padding = '\t'*(5 - int(len(temp)/4))
                 msg += temp + padding
             Log.log(msg)
@@ -121,7 +122,6 @@ class Log:
 
     @staticmethod
     def log_elected_chancellor(chancellor, fascist_track):
-
         if 4 <= fascist_track:
             message = 'Late game Fascism; if the chancellor is Hitler, the Fascists win.'
             Log.log(message)

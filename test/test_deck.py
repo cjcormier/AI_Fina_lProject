@@ -1,5 +1,4 @@
-from secret_hitler_ai.deck import Deck
-from secret_hitler_ai.cards import Cards
+from secret_hitler_ai.deck import Deck, Cards
 import random
 from secret_hitler_ai.logging import Log
 

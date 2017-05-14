@@ -1,9 +1,14 @@
+"""
+Contains the basic classes to control and retrieve information about the Facist and 
+Liberal Policy tracks and the status of the win condition.
+"""
 from enum import Enum, unique
-from secret_hitler_ai.cards import Cards
+from secret_hitler_ai.deck import Cards
 
 
 @unique
 class BoardStates(Enum):
+    """Status of the win condition."""
     NORMAL = 0
     FASCIST_WIN = 1
     LIBERAL_WIN = 2
@@ -12,11 +17,17 @@ class BoardStates(Enum):
 
 
 class Board:
+    """Information about the Fascist and Liberal Policy tracks."""
     def __init__(self):
         self.fascist_board = 0
         self.liberal_board = 0
 
-    def increment_board(self, policy):
+    def increment_board(self, policy: Cards)->BoardStates:
+        """Increments the relevent policy track for the given policy.
+        
+        :param policy: The policy that was enacted.
+        :return: The win condition based on the played card.
+        """
         if policy is Cards.FASCIST:
             self.fascist_board += 1
             if self.fascist_board >= 6:
