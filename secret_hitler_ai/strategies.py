@@ -1,28 +1,17 @@
 import random
-from enum import Enum, unique
+
 from secret_hitler_ai.deck import Cards
 from secret_hitler_ai.logging import Log
+from secret_hitler_ai.player import Player
 
 
-@unique
-class StrategyTypes(Enum):
-    CHOOSE_CHANCELLOR = 1
-    CHANCELLOR_CARDS = 2
-    PRESIDENT_CARDS = 3
-    VOTE = 4
-    VOTE_RESULTS = 5
-    ANALYZE_REVEALED_CARD = 6
-    ANALYZE_CHANCELLOR_CARD = 7
-    SHOOT = 8
-
-
-def choose_liberal_chancellor(player, valid_players):
+def choose_liberal_chancellor(player: Player, valid_players):
     assert player.name not in valid_players
     min_prob = 1
     players = []
     probabilities = player.probabilities
     for curr_player in valid_players:
-        prob = probabilities[curr_player][0]
+        prob = probabilities[curr_player].fascist
         if prob < min_prob:
             min_prob = prob
             players = [curr_player]
@@ -32,11 +21,11 @@ def choose_liberal_chancellor(player, valid_players):
     return random.choice(choices)
 
 
-def choose_fascist_chancellor(player, valid_players):
+def choose_fascist_chancellor(player: Player, valid_players):
     probabilities = player.probabilities
     fascist_players = []
     for valid_player in valid_players:
-        if probabilities[valid_player][0] == 1:
+        if probabilities[valid_player].fascist == 1:
             fascist_players.append(valid_player)
     if len(fascist_players) == 0:
         return choose_liberal_chancellor(player, valid_players)
@@ -48,7 +37,7 @@ def h_choose_fascist_chancellor(player, valid_players):
     players = []
     probabilities = player.probabilities
     for valid_player in valid_players:
-        prob = probabilities[valid_player][0]
+        prob = probabilities[valid_player].fascist
         if prob > max_prob:
             max_prob = prob
             players = [valid_player]
@@ -107,9 +96,9 @@ def chancellor_choose_liberal_cards(player, president, cards, deck):
     prob_ffl = 3 * l_remaining * multi_2(f_remaining) / multi_3(tot_remaining)
     prob_fll = 3 * f_remaining * multi_2(l_remaining) / multi_3(tot_remaining)
     prob_lll = multi_3(l_remaining) / multi_3(tot_remaining)
-    default_fp = player.initial_probs.ffascist
+    default_fp = player.initial_probs.fascist
     default_lp = 1 - default_fp
-    old_fp = player.probabilities[president][0]
+    old_fp = player.probabilities[president].fascist
     if Cards.LIBERAL in cards:
         card = Cards.LIBERAL
         cards.pop()
@@ -149,8 +138,8 @@ def chancellor_choose_fascist_cards(player, president, cards, deck):
 
 def standard_liberal_vote(player, president, chancellor):
     probabilities = player.probabilities
-    president_prob = probabilities[president][0]
-    chancellor_prob = probabilities[chancellor][0]
+    president_prob = probabilities[president].fascist
+    chancellor_prob = probabilities[chancellor].fascist
 
     unknown_fascists = player.num_fascists - len(player.fascists)
     unknown_players = len(set(probabilities.keys())-set(player.fascists)-{player.name})
@@ -301,7 +290,7 @@ def vote_true(player, president, chancellor):
 def shoot_random(player, valid_players):
     return random.choice(valid_players)
 
-__all__ = ['StrategyTypes', 'choose_liberal_chancellor', 'choose_fascist_chancellor',
+__all__ = ['choose_liberal_chancellor', 'choose_fascist_chancellor',
            'h_choose_fascist_chancellor', 'choose_not_hitler_chancellor',
            'president_choose_liberal_cards', 'president_give_choice',
            'president_choose_fascist_cards', 'chancellor_choose_liberal_cards',

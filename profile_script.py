@@ -1,6 +1,5 @@
 import argparse
 import cProfile
-import pstats
 
 from set_strats import *
 from secret_hitler_ai.role import Role
@@ -66,7 +65,5 @@ def main():
 
 
 if __name__ == '__main__':
-    cProfile.run('main()', sort='tottime')
-    # p = pstats.Stats('restats')
-    # p.strip_dirs().sort_stats(-1).print_stats()
+    cProfile.run('main()', 'results.cprof')
 

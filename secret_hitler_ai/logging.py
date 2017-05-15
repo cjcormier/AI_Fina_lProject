@@ -40,15 +40,15 @@ class Log:
                 msg = [temp, '\t']
                 for entry in names:
                     probs = active_players[entry].probabilities
-                    temp = '{0.ffascist:.4}/{0.fhitler:.4}'.format(probs[row])
+                    temp = '{0.fascist:.4}/{0.hitler:.4}'.format(probs[row])
                     padding = '\t'*(5 - int(len(temp)/4))
                     msg += [temp, padding]
                 Log.log(''.join(msg))
             msg = ['Total:', '\t']
             for entry in names:
                 probs = active_players[entry].probabilities
-                ftotal = sum([x.ffascist for x in probs.values()])
-                htotal = sum([x.fhitler for x in probs.values()])
+                ftotal = sum([x.fascist for x in probs.values()])
+                htotal = sum([x.hitler for x in probs.values()])
                 temp = '{:.2}/{:.2}'.format(ftotal, htotal)
                 padding = '\t'*(5 - int(len(temp)/4))
                 msg += [temp, padding]
@@ -79,9 +79,9 @@ class Log:
             self.h_chanc += 1
 
     def log_game_results(self, rounds):
-        message = '\n{} rounds:\n{} liberal presidents, {} fascist presidents and {} hitler ' \
-                  'presidents\n{} liberal chancellors, {} fascist chancellors and {} hitler ' \
-                  'chancellors.'
+        message = '\n{} rounds:\n{} liberal presidents, {} fascist presidents and {} ' \
+                  'hitler presidents\n{} liberal chancellors, {} fascist chancellors ' \
+                  'and {} hitler chancellors.'
         args =(rounds, self.l_pres, self.f_pres, self.h_pres, self.l_chanc,
                                  self.f_chanc, self.h_chanc)
         Log.log(message, args)
@@ -104,7 +104,8 @@ class Log:
     @staticmethod
     def log_votes(president, chancellor, ja, nay):
         message = 'Voting on new government. President: {} Chancellor: {} ({},{})'
-        Log.log(message.format(president.name, chancellor.name, president.role, chancellor.role))
+        args = (president.name, chancellor.name, president.role, chancellor.role)
+        Log.log(message, args)
         message = 'Votes in favor: {}, Votes against: {}  ({},{})'
         Log.log(message, (ja, nay, len(ja), len(nay)))
 
