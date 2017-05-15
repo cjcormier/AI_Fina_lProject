@@ -107,7 +107,7 @@ def chancellor_choose_liberal_cards(player, president, cards, deck):
     prob_ffl = 3 * l_remaining * multi_2(f_remaining) / multi_3(tot_remaining)
     prob_fll = 3 * f_remaining * multi_2(l_remaining) / multi_3(tot_remaining)
     prob_lll = multi_3(l_remaining) / multi_3(tot_remaining)
-    default_fp = default_prob(player)
+    default_fp = player.initial_probs.ffascist
     default_lp = 1 - default_fp
     old_fp = player.probabilities[president][0]
     if Cards.LIBERAL in cards:
@@ -178,52 +178,44 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
     prob_ffl = 3*l_remaining*multi_2(f_remaining)/tot_remaining_3
     prob_fll = 3*f_remaining*multi_2(l_remaining)/tot_remaining_3
     prob_lll = multi_3(l_remaining)/tot_remaining_3
-    orig_prob = default_prob(player)
+
+    orig_prob = player.initial_probs.fascist
     prob_cf = orig_prob
     prob_pf = orig_prob
     prob_cl = 1 - prob_cf
     prob_pl = 1 - prob_pf
-    prev_pf = player.probabilities[president][0]
-    prev_cf = player.probabilities[chancellor][0]
-    prob_president = 0.0
-    prob_chancellor = 0.0
+    prev_pf = player.probabilities[president].fascist
+    prev_cf = player.probabilities[chancellor].fascist
 
     if card is Cards.LIBERAL:
-        if prob_lll == 0:
-            if prob_pl == 0:
-                prob_chancellor = 1.0
-                prob_president = 0.0
-            elif prob_cl == 0:
-                prob_president = 1.0
-                prob_chancellor = 0.0
-            elif prob_cf == 0 and prob_pl == 0:
-                prob_president = 0.0
-                prob_chancellor = 0.0
-        else:
-            prob_l = prob_lll + prob_fll*(prob_cl+prob_pl-prob_cl*prob_pl) + \
-                     prob_ffl*prob_cl*prob_pl
-            prob_president = (prob_lll + prob_fll + prob_ffl*prob_cl)*prob_pl
-            prob_president /= prob_l
-            prob_president = 1-prob_president
+        prob_l = prob_lll + prob_fll*(prob_cl+prob_pl-prob_cl*prob_pl) + \
+                 prob_ffl*prob_cl*prob_pl
+        prob_president = (prob_lll + prob_fll + prob_ffl*prob_cl)*prob_pl
+        prob_president /= prob_l
+        prob_president = 1-prob_president
 
-            prob_chancellor = (prob_lll + prob_fll + prob_ffl*prob_pl)*prob_cl
-            prob_chancellor /= prob_l
-            prob_chancellor = 1-prob_chancellor
+        prob_chancellor = (prob_lll + prob_fll + prob_ffl*prob_pl)*prob_cl
+        prob_chancellor /= prob_l
+        prob_chancellor = 1-prob_chancellor
     else:
-        prob_f = prob_fff + prob_ffl*(prob_cf+prob_pf-prob_cf*prob_pf) + prob_fll*prob_cf*prob_pf
+        prob_f = prob_fff + prob_ffl*(prob_cf+prob_pf-prob_cf*prob_pf) + \
+                 prob_fll*prob_cf*prob_pf
         prob_president = (prob_fff+prob_ffl+prob_fll*prob_cf) * prob_pf
         prob_president /= prob_f
         prob_chancellor = (prob_fff+prob_ffl+prob_fll*prob_pf) * prob_cf
         prob_chancellor /= prob_f
 
+    Log.log('inital: {:.2}', prob_president)
     prob_president = rbe_markov_analysis(prob_president, prev_pf, orig_prob)
+    prob_president_wop = rbe_markov_analysis_withoutp(prob_president, prev_pf)
     prob_chancellor = rbe_markov_analysis(prob_chancellor, prev_cf, orig_prob)
+    Log.log('markov_analysis with p: {!s:.2}, without p {!s:.2}', (prob_president, prob_president_wop))
 
     player.set_prob(president, prob_president)
     player.set_prob(chancellor, prob_chancellor)
 
-    message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
-    Log.log_probs(message.format(player.name, president, chancellor))
+    # message = "Player {} analyzed new fascist policy enacted by president {} and chancellor {}"
+    # Log.log_probs(message.format(player.name, president, chancellor))
     # player.print_probs()
 
 
@@ -231,8 +223,16 @@ def rbe_markov_analysis(inv_sensor_model: float, recursive_term: float, prior: f
     if inv_sensor_model == 1 or recursive_term == 1:
         return inv_sensor_model
     gama_result = gama(inv_sensor_model, recursive_term, prior)
-    return 1/(1+1/gama_result) if gama_result != 0 else 0
+    return 1/(1+1/gama_result) if gama_result != 0 else 0.0
 
+def rbe_markov_analysis_withoutp(inv_sensor_model: float, recursive_term: float)->float:
+    if inv_sensor_model == 1 or recursive_term == 1:
+        return inv_sensor_model
+    gama_result = gama_withoutp(inv_sensor_model, recursive_term)
+    return 1/(1+1/gama_result) if gama_result != 0 else 0.0
+
+def gama_withoutp(inv_sensor_model: float, recursive_term: float)->float:
+    return single_gama(inv_sensor_model) * single_gama(recursive_term)
 
 def gama(inv_sensor_model: float, recursive_term: float, prior: float)->float:
     return single_gama(inv_sensor_model) * single_gama(recursive_term) * single_gama(prior)
@@ -253,7 +253,7 @@ def analyze_chancellor_card(player, chancellor, pres_cards, chanc_card):
     if chanc_card == Cards.FASCIST and Cards.LIBERAL in pres_cards:
         message = "Player {} thinks chancellor {} is a Fascist because they were given a " \
                   "choice and played a fascist policy."
-        Log.log(message.format(player.name, chancellor))
+        Log.log(message, (player.name, chancellor))
         if chancellor not in player.fascists:
             player.fascists.append(chancellor)
 

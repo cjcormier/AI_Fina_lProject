@@ -48,8 +48,8 @@ def main():
                 l_wins += 1
                 h_shot += 1
         Log.allow_logging(True)
-        Log.log(message.format(num_players, games, l_wins, f_wins, h_chanc, h_shot, l_policies,
-                               f_policies, l_policies + f_policies, total_anarchies / games))
+        Log.log(message, (num_players, games, l_wins, f_wins, h_chanc, h_shot, l_policies,
+                          f_policies, l_policies + f_policies, total_anarchies / games))
 
 
 if __name__ == '__main__':

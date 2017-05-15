@@ -60,10 +60,10 @@ def main():
                                         h_shot += 1
 
                                 Log.allow_logging(True)
-                                Log.log(message.format(num_players, games, l_wins, f_wins, h_chanc,
-                                                       h_shot, l_policies, f_policies,
-                                                       l_policies+f_policies, total_anarchies/games,
-                                                       fcc, hcc, lcpc, hcpc, hccc, hv))
+                                Log.log(message, (num_players, games, l_wins, f_wins, h_chanc,
+                                                  h_shot, l_policies, f_policies,
+                                                  l_policies+f_policies, total_anarchies/games,
+                                                  fcc, hcc, lcpc, hcpc, hccc, hv))
 
 
 if __name__ == '__main__':

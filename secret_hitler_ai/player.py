@@ -40,7 +40,7 @@ class Player:
         self.num_fascists = num_fascists
         self.strats: Dict[st, Callable[..., ...]] = {}
         self.probabilities: Dict[Name, RoleProbs] = {}
-        self.initial_probs = RoleProbs
+        self.initial_probs: RoleProbs = RoleProbs(0, 0)
         for player_name in player_names:
             self.probabilities[player_name] = RoleProbs(0, 0)
 
@@ -121,7 +121,7 @@ class Player:
                 self.probabilities[curr_player] = RoleProbs(next_fascist_prob, curr_probs[1])
         #         if next_fascist_prob > 1:
         #             recurse = True
-        #             self.probabilities[curr_player] = (1.0, curr_probs[1])
+        #             self.probabilities[curr_player] = RoleProbs(1, curr_probs[1])
         #             self.fascists.append(curr_player)
         # if recurse:
         #     self.adjust_probs()

@@ -28,7 +28,7 @@ class Log:
 
     @staticmethod
     def log_all_probs(active_players, all_players):
-        if Log.can_log_probs:
+        if Log.can_log_probs and Log.can_log:
             Log.log('\nProbabilities (Fascist/Hitler)')
             names = active_players.keys()
             all_names = all_players.keys()
@@ -37,31 +37,31 @@ class Log:
 
             for row in all_names:
                 temp = '{} ({})'.format(row, all_players[row].role.name[0])
-                msg = temp + '\t'
+                msg = [temp, '\t']
                 for entry in names:
                     probs = active_players[entry].probabilities
                     temp = '{0.ffascist:.4}/{0.fhitler:.4}'.format(probs[row])
                     padding = '\t'*(5 - int(len(temp)/4))
-                    msg += temp + padding
-                Log.log(msg)
-            msg = 'Total:' + '\t'
+                    msg += [temp, padding]
+                Log.log(''.join(msg))
+            msg = ['Total:', '\t']
             for entry in names:
                 probs = active_players[entry].probabilities
                 ftotal = sum([x.ffascist for x in probs.values()])
                 htotal = sum([x.fhitler for x in probs.values()])
                 temp = '{:.2}/{:.2}'.format(ftotal, htotal)
                 padding = '\t'*(5 - int(len(temp)/4))
-                msg += temp + padding
-            Log.log(msg)
+                msg += [temp, padding]
+            Log.log(''.join(msg))
 
     @staticmethod
-    def log(*args):
-        string = ''
-        for element in args:
-            string += str(element)
-            string += ' '
+    def log(msg: str, args=()):
         if Log.can_log:
-            print(string[0:-1])
+            msg = str(msg)
+            try:
+                print(msg.format(*args))
+            except:
+                print(msg.format(args))
 
     def record_gov(self, president, chancellor):
         if president.role is Role.LIBERAL:
@@ -82,9 +82,9 @@ class Log:
         message = '\n{} rounds:\n{} liberal presidents, {} fascist presidents and {} hitler ' \
                   'presidents\n{} liberal chancellors, {} fascist chancellors and {} hitler ' \
                   'chancellors.'
-        message = message.format(rounds, self.l_pres, self.f_pres, self.h_pres, self.l_chanc,
+        args =(rounds, self.l_pres, self.f_pres, self.h_pres, self.l_chanc,
                                  self.f_chanc, self.h_chanc)
-        Log.log(message)
+        Log.log(message, args)
 
     @staticmethod
     def log_new_round():
@@ -99,14 +99,14 @@ class Log:
     @staticmethod
     def log_next_policy(policy):
         message = 'Next Policy: {}'
-        Log.log(message.format(policy))
+        Log.log(message, (policy))
 
     @staticmethod
     def log_votes(president, chancellor, ja, nay):
         message = 'Voting on new government. President: {} Chancellor: {} ({},{})'
         Log.log(message.format(president.name, chancellor.name, president.role, chancellor.role))
         message = 'Votes in favor: {}, Votes against: {}  ({},{})'
-        Log.log(message.format(ja, nay, len(ja), len(nay)))
+        Log.log(message, (ja, nay, len(ja), len(nay)))
 
     @staticmethod
     def log_vote_results(vote_passed, rounds):
@@ -114,11 +114,11 @@ class Log:
             message = 'Vote Passed'
         else:
             message = 'Vote Failed, number of consecutive failed votes:'
-        Log.log(message.format(rounds))
+        Log.log(message, rounds)
 
     @staticmethod
     def log_valid_chancellors(valid_chancellors):
-        Log.log('Valid chancellors: {}'.format(valid_chancellors))
+        Log.log('Valid chancellors: {}', valid_chancellors)
 
     @staticmethod
     def log_elected_chancellor(chancellor, fascist_track):
@@ -126,11 +126,10 @@ class Log:
             message = 'Late game Fascism; if the chancellor is Hitler, the Fascists win.'
             Log.log(message)
             if chancellor.role is Role.HITLER:
-                message = 'Chancellor {} is Hitler, fascists win!'.format(chancellor.name)
+                message = 'Chancellor {} is Hitler, fascists win!'
             else:
                 message = 'Chancellor {} not is Hitler, you live to play another day!'
-                message = message.format(chancellor.name)
-            Log.log(message)
+            Log.log(message, chancellor.name)
 
     @staticmethod
     def log_policy(drawn_policies, p_pick, c_pick):
@@ -140,14 +139,14 @@ class Log:
     @staticmethod
     def log_shot_players(president, player_shot):
         ps_name = player_shot.name
-        message = 'President {} shot player {}.'.format(president.name, ps_name)
-        Log.log(message)
+        Log.log('President {} shot player {}.', (president.name, ps_name))
         if player_shot.role is Role.HITLER:
-            message = 'Player {} is Hitler, liberals win!'.format(ps_name)
+            message = 'Player {} is Hitler, liberals win!'
+            args = ps_name
         else:
             message = 'Player {0} is not Hitler. ({0} was {1} instead and {2} was {3}.)'
-            message = message.format(ps_name, player_shot.role, president.name, president.role)
-        Log.log(message)
+            args = (ps_name, player_shot.role, president.name, president.role)
+        Log.log(message, args)
 
 
 __all__ = ['Log']

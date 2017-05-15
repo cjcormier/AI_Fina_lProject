@@ -42,7 +42,7 @@ def main():
 
     Log.log('')
     Log.log(winner)
-    Log.log("Fascist Policies: {}, Liberal Policies: {}".format(fascist_board, liberal_board))
+    Log.log("Fascist Policies: {}, Liberal Policies: {}", (fascist_board, liberal_board))
 
 
 if __name__ == '__main__':

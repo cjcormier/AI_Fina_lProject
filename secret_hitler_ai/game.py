@@ -29,7 +29,7 @@ class Game:
         rounds = 0
         Log.log('ROLES')
         for player in self.players.values():
-            Log.log('{}: {}'.format(player.name, player.role))
+            Log.log('{}: {}', (player.name, player.role))
         while self.winner is BoardStates.NORMAL:
             rounds += 1
             Log.log_new_round()
