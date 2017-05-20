@@ -1,5 +1,5 @@
 from secret_hitler_ai.strategies import *
-from secret_hitler_ai.strategytupes import StrategyTypes
+from secret_hitler_ai.strategytypes import StrategyTypes
 
 l_choose_chancellor = [
     choose_liberal_chancellor

@@ -2,7 +2,7 @@
 from typing import *
 
 from secret_hitler_ai.role import Role, Prob, RoleProbs
-from secret_hitler_ai.strategytupes import StrategyTypes as St
+from secret_hitler_ai.strategytypes import StrategyTypes as St
 
 Name = Union[str, int]
 

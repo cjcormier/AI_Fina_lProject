@@ -142,13 +142,18 @@ def standard_liberal_vote(player, president, chancellor):
     chancellor_prob = probabilities[chancellor].fascist
 
     unknown_fascists = player.num_fascists - len(player.fascists)
-    unknown_players = len(set(probabilities.keys())-set(player.fascists)-{player.name})
+    unknown_players = len(probabilities) - len(player.fascists)
+    unknown_players -= 1 if player not in player.fascists else 0
     if unknown_fascists == 0:
         default_individual_prob = 0
     else:
         default_individual_prob = unknown_fascists/unknown_players
-    limit_prob = 2*default_individual_prob-default_individual_prob**2
-    return president_prob+chancellor_prob-(president_prob*chancellor_prob) < limit_prob+.07
+
+    limit_prob = 2*default_individual_prob - default_individual_prob**2
+    # adjust = .04 * (len(probabilities))**.66
+    adjust = .07
+    prob_fascist = president_prob + chancellor_prob - president_prob*chancellor_prob
+    return prob_fascist < limit_prob + adjust
 
 
 def standard_fascist_vote(player, president, chancellor):
@@ -168,37 +173,31 @@ def analyze_revealed_card(player, president, chancellor, card, deck):
     prob_fll = 3*f_remaining*multi_2(l_remaining)/tot_remaining_3
     prob_lll = multi_3(l_remaining)/tot_remaining_3
 
-    orig_prob = player.initial_probs.fascist
-    prob_cf = orig_prob
-    prob_pf = orig_prob
-    prob_cl = 1 - prob_cf
-    prob_pl = 1 - prob_pf
+    orig_prob_f = player.initial_probs.fascist
+    orig_prob_l = 1 - orig_prob_f
     prev_pf = player.probabilities[president].fascist
     prev_cf = player.probabilities[chancellor].fascist
 
     if card is Cards.LIBERAL:
-        prob_l = prob_lll + prob_fll*(prob_cl+prob_pl-prob_cl*prob_pl) + \
-                 prob_ffl*prob_cl*prob_pl
-        prob_president = (prob_lll + prob_fll + prob_ffl*prob_cl)*prob_pl
+        prob_l = prob_lll + prob_fll*(2*orig_prob_l-orig_prob_l**2) + \
+                 prob_ffl*orig_prob_l**2
+        prob_president = (prob_lll + prob_fll + prob_ffl*orig_prob_l)*orig_prob_l
         prob_president /= prob_l
         prob_president = 1-prob_president
 
-        prob_chancellor = (prob_lll + prob_fll + prob_ffl*prob_pl)*prob_cl
+        prob_chancellor = (prob_lll + prob_fll + prob_ffl*orig_prob_l)*orig_prob_l
         prob_chancellor /= prob_l
         prob_chancellor = 1-prob_chancellor
     else:
-        prob_f = prob_fff + prob_ffl*(prob_cf+prob_pf-prob_cf*prob_pf) + \
-                 prob_fll*prob_cf*prob_pf
-        prob_president = (prob_fff+prob_ffl+prob_fll*prob_cf) * prob_pf
+        prob_f = prob_fff + prob_ffl*(2*orig_prob_f-orig_prob_f**2) + \
+                 prob_fll*orig_prob_f**2
+        prob_president = (prob_fff+prob_ffl+prob_fll*orig_prob_f) * orig_prob_f
         prob_president /= prob_f
-        prob_chancellor = (prob_fff+prob_ffl+prob_fll*prob_pf) * prob_cf
+        prob_chancellor = (prob_fff+prob_ffl+prob_fll*orig_prob_f) * orig_prob_f
         prob_chancellor /= prob_f
 
-    Log.log('inital: {:.2}', prob_president)
-    prob_president = rbe_markov_analysis(prob_president, prev_pf, orig_prob)
-    prob_president_wop = rbe_markov_analysis_withoutp(prob_president, prev_pf)
-    prob_chancellor = rbe_markov_analysis(prob_chancellor, prev_cf, orig_prob)
-    Log.log('markov_analysis with p: {!s:.2}, without p {!s:.2}', (prob_president, prob_president_wop))
+    prob_president = rbe_markov_analysis(prob_president, prev_pf, orig_prob_f)
+    prob_chancellor = rbe_markov_analysis(prob_chancellor, prev_cf, orig_prob_f)
 
     player.set_prob(president, prob_president)
     player.set_prob(chancellor, prob_chancellor)
@@ -214,14 +213,6 @@ def rbe_markov_analysis(inv_sensor_model: float, recursive_term: float, prior: f
     gama_result = gama(inv_sensor_model, recursive_term, prior)
     return 1/(1+1/gama_result) if gama_result != 0 else 0.0
 
-def rbe_markov_analysis_withoutp(inv_sensor_model: float, recursive_term: float)->float:
-    if inv_sensor_model == 1 or recursive_term == 1:
-        return inv_sensor_model
-    gama_result = gama_withoutp(inv_sensor_model, recursive_term)
-    return 1/(1+1/gama_result) if gama_result != 0 else 0.0
-
-def gama_withoutp(inv_sensor_model: float, recursive_term: float)->float:
-    return single_gama(inv_sensor_model) * single_gama(recursive_term)
 
 def gama(inv_sensor_model: float, recursive_term: float, prior: float)->float:
     return single_gama(inv_sensor_model) * single_gama(recursive_term) * single_gama(prior)
