@@ -1,10 +1,9 @@
 from random import shuffle
 
-from secret_hitler_ai.board import *
-from secret_hitler_ai.deck import *
-from secret_hitler_ai.deck import Cards
+from secret_hitler_ai.board import BoardStates, Board
+from secret_hitler_ai.deck import Deck, Card
 from secret_hitler_ai.logging import Log
-from secret_hitler_ai.player import *
+from secret_hitler_ai.player import Player, Name
 from secret_hitler_ai.role import Role
 
 
@@ -44,8 +43,9 @@ class Game:
             self.prev_pres = self.president_name
             if self.check_hitler_chanc_win():
                 return
-            next_policy = self.choose_policy()
-            self.analyze_revealed_card(next_policy)
+            remaining = self.deck.total_remaining()
+            next_policy = self.choose_policy(remaining)
+            self.analyze_revealed_card(next_policy, remaining)
         else:
             next_policy = self.deck.draw()
             self.anarchies += 1
@@ -94,12 +94,11 @@ class Game:
             return True
         return False
 
-    def choose_policy(self):
-        remaining = self.deck.total_remaining()
+    def choose_policy(self, remaining):
         policies = self.deck.draw_hand()
         p_pick = self.president.president_pick(self.chancellor.name, list(policies))
         c_pick = self.chancellor.chancellor_pick(self.president.name,
-                                                 list(p_pick), remaining)
+                                                 shuffle(list(p_pick)), remaining)
         Log.log_policy(policies, p_pick, c_pick)
 
         self.president.analyze_chancellor_card(self.chancellor.name, p_pick, c_pick)
@@ -118,15 +117,15 @@ class Game:
         Log.log_votes(self.president, self.chancellor, ja, nay)
         return len(ja)*2 >= len(self.players)
 
-    def analyze_revealed_card(self, next_policy):
+    def analyze_revealed_card(self, next_policy, remaining):
         for name, player in self.players.items():
             if name not in [self.chancellor.name, self.president_name]:
                 player.analyze_revealed_card(self.president.name, self.chancellor.name,
-                                             next_policy, self.deck.total_remaining())
+                                             next_policy, remaining)
 
     def shoot(self, next_policy):
         fascist_board = self.board.fascist_board
-        if 4 <= fascist_board <= 5 and next_policy is Cards.FASCIST and self.allow_shoots:
+        if 4 <= fascist_board <= 5 and next_policy is Card.FASCIST and self.allow_shoots:
             player_shot = self.president.shoot(list(self.players.keys()))
             Log.log_shot_players(self.president, self.players[player_shot])
             if self.players[player_shot].role is Role.HITLER:

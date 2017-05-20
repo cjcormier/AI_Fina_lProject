@@ -1,8 +1,8 @@
 """Contains the classes for the players."""
-from typing import *
+from typing import List, Dict, Callable, Union
 
 from secret_hitler_ai.role import Role, Prob, RoleProbs
-from secret_hitler_ai.strategytypes import StrategyTypes as St
+from secret_hitler_ai.strategies.strategy_types import StrategyTypes as St
 
 Name = Union[str, int]
 
@@ -29,16 +29,17 @@ class Player:
         :param known_roles: The roles that the player knows.
         """
         self.role = role
-        num_others = len(self.probabilities)-1
 
         if role is Role.FASCIST:
             self.initial_probs = RoleProbs(0, 0)
             self.initialize_prob(known_roles, RoleProbs(1, 0))
+
         elif role is Role.LIBERAL:
             fascist_prob = self.num_fascists / (len(self.probabilities) - 1)
             hitler_prob = 1 / (len(self.probabilities) - 1)
             self.initial_probs = RoleProbs(fascist_prob, hitler_prob)
             self.initialize_prob(known_roles, RoleProbs(0, 0))
+
         elif role is Role.HITLER:
             if len(self.probabilities) > 6:
                 fascist_prob = (self.num_fascists-1) / (len(self.probabilities)-1)

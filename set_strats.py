@@ -1,5 +1,13 @@
-from secret_hitler_ai.strategies import *
-from secret_hitler_ai.strategytypes import StrategyTypes
+from secret_hitler_ai.strategies.analyze_chancellor import *
+from secret_hitler_ai.strategies.analyze_revealed import *
+from secret_hitler_ai.strategies.chancellor_cards import *
+from secret_hitler_ai.strategies.choose_chancellor import *
+from secret_hitler_ai.strategies.president_cards import *
+from secret_hitler_ai.strategies.shoot import *
+from secret_hitler_ai.strategies.strategy_helpers import *
+from secret_hitler_ai.strategies.strategy_types import *
+from secret_hitler_ai.strategies.vote import *
+from secret_hitler_ai.strategies.vote_results import *
 
 l_choose_chancellor = [
     choose_liberal_chancellor
@@ -12,7 +20,7 @@ f_choose_chancellor = [
 ]
 
 h_choose_chancellor = [
-    h_choose_fascist_chancellor,
+    choose_most_fascist_chancellor,
     choose_liberal_chancellor
 ]
 
@@ -31,7 +39,7 @@ h_choose_p_cards = [
 ]
 
 l_choose_c_cards = [
-    chancellor_choose_liberal_cards
+    chancellor_choose_liberal_cards_analyze
 ]
 
 f_choose_c_cards = [
@@ -40,7 +48,7 @@ f_choose_c_cards = [
 
 h_choose_c_cards = [
     chancellor_choose_fascist_cards,
-    chancellor_choose_liberal_cards
+    chancellor_choose_liberal_cards_analyze
 ]
 
 l_vote = [

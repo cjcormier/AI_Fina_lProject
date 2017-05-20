@@ -22,29 +22,32 @@ class RoleProbs:
     """Probability that someone is fascist or hitler."""
 
     def __init__(self, fascist: Prob, hitler: Prob):
-        self._fascist: float = fascist
-        self._hitler: float = hitler
+        self._fascist: float = float(fascist)
+        self._hitler: float = float(hitler)
 
     @property
     def fascist(self)->float:
         """
-        Return the fascist probability as a float.
+        The fascist probability as a float.
+        
         :return: The fascist probability.
         """
+
         return self._fascist
 
     @property
     def hitler(self)->float:
         """
-        Return the hitler probability as a float.
+        The hitler probability as a float.
+        
         :return: The hitler probability.
         """
+        assert type(self._hitler) is float
         return self._hitler
 
     @fascist.setter
     def fascist(self, value: Prob):
         self._fascist = float(value)
-
 
     @hitler.setter
     def hitler(self, value: Prob):

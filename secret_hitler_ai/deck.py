@@ -7,7 +7,7 @@ from typing import List, Tuple
 
 
 @unique
-class Cards(Enum):
+class Card(Enum):
     """The types of policy cards."""
     FASCIST = 0
     LIBERAL = 1
@@ -25,7 +25,7 @@ class Deck:
         self.facDisc = 0
         self.libDisc = 0
 
-    def draw(self)->Cards:
+    def draw(self)->Card:
         """Draws a card.
         
         :return: The Drawn card.
@@ -39,13 +39,13 @@ class Deck:
         card = randint(0, self.libDeck + self.facDeck - 1)
         if card < self.libDeck:
             self.libDeck -= 1
-            card = Cards.LIBERAL
+            card = Card.LIBERAL
         else:
             self.facDeck -= 1
-            card = Cards.FASCIST
+            card = Card.FASCIST
         return card
 
-    def draw_hand(self)->List[Cards]:
+    def draw_hand(self)->List[Card]:
         """Draws three cards.
         
         :return: The drawn cards.
@@ -55,7 +55,7 @@ class Deck:
         c3 = self.draw()
         return [c1, c2, c3]
 
-    def discard(self, discard: List[Cards], ignore: List[Cards]):
+    def discard(self, discard: List[Card], ignore: List[Card]):
         """Discards the unused cards.
         
         :param discard: The cards to discard.
@@ -64,7 +64,7 @@ class Deck:
         for card in ignore:
             discard.remove(card)
         for card in discard:
-            if card is Cards.LIBERAL:
+            if card is Card.LIBERAL:
                 self.libDisc += 1
             else:
                 self.facDisc += 1
@@ -76,4 +76,4 @@ class Deck:
         """
         return self.libDeck+self.libDisc, self.facDeck+self.facDisc
 
-__all__ = ['Deck', 'Cards']
+__all__ = ['Deck', 'Card']
