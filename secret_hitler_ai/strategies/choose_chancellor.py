@@ -19,7 +19,7 @@ def choose_liberal_chancellor(player: Player, valid_players: List[Player]):
     """
     min_prob = 1
     players = []
-    probabilities = player.probabilities
+    probabilities = player.probs
     for curr_player in valid_players:
         prob = probabilities[curr_player].fascist
         if prob < min_prob:
@@ -39,7 +39,7 @@ def choose_fascist_chancellor(player: Player, valid_players: List[Name]):
     :param valid_players: The players who are able of being the chancellor.
     :return: The player chosen to be chancellor.
     """
-    probabilities = player.probabilities
+    probabilities = player.probs
     fascist_players = []
     for valid_player in valid_players:
         if probabilities[valid_player].fascist == 1:
@@ -61,7 +61,7 @@ def choose_most_fascist_chancellor(player: Player, valid_players: List[Name]):
     """
     max_prob = 0
     players = []
-    probabilities = player.probabilities
+    probabilities = player.probs
     for valid_player in valid_players:
         prob = probabilities[valid_player].fascist
         if prob > max_prob:
@@ -83,7 +83,7 @@ def choose_not_hitler_chancellor(player: Player, valid_players: List[Name]):
     :param valid_players: The players who are able of being the chancellor.
     :return: The player chosen to be chancellor.
     """
-    probabilities = player.probabilities
+    probabilities = player.probs
     fascist_players = []
 
     for curr_player in valid_players:

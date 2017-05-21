@@ -12,7 +12,8 @@ from typing import Tuple
 
 
 def chancellor_choose_liberal_cards_analyze(player: Player, president: Name,
-                                            cards: Card, deck: Tuple[int])->Card:
+                                            cards: Tuple[Card, Card],
+                                            deck: Tuple[int, int])->Card:
     """
     The chancellor chooses a liberal policy to enact if possible and also analyzes 
     the cards passed to them.
@@ -33,7 +34,7 @@ def chancellor_choose_liberal_cards_analyze(player: Player, president: Name,
     prob_lll = multi_3(l_remaining) / multi_3(tot_remaining)
     default_fp = player.initial_probs.fascist
     default_lp = 1 - default_fp
-    old_fp = player.probabilities[president].fascist
+    old_fp = player.probs[president].fascist
     if Card.LIBERAL in cards:
         card = Card.LIBERAL
         if Card.LIBERAL in cards:
@@ -58,7 +59,8 @@ def chancellor_choose_liberal_cards_analyze(player: Player, president: Name,
 
 
 def chancellor_choose_fascist_cards(player: Player, president: Name,
-                                    cards: Card, deck: Tuple[int])->Card:
+                                    cards: Tuple[Card, Card],
+                                    deck: Tuple[int, int])->Card:
     """
     The chancellor chooses a fascist policy to enact if possible.
 
@@ -74,8 +76,8 @@ def chancellor_choose_fascist_cards(player: Player, president: Name,
         return Card.LIBERAL
 
 
-def random_chancellor_cards(player: Player, president: Name,
-                            cards: Card, deck: Tuple[int])->Card:
+def random_chancellor_cards(player: Player, president: Name, cards: Tuple[Card, Card],
+                            deck: Tuple[int, int])->Card:
     """
     The chancellor chooses a random policy to enact if possible.
 

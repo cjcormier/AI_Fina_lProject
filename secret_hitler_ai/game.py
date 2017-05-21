@@ -77,8 +77,9 @@ class Game:
         players = self.players.keys()
         chancellor_name = self.chancellor.name if self.chancellor is not None else -1
 
-        names = [x for x in players if x is not chancellor_name and x is not self.president_name]
-        names = [x for x in names if x is not self.prev_pres] if len(self.players) > 5 else names
+        names = [x for x in players if x not in [chancellor_name, self.president_name]]
+        if len(self.players) > 5:
+            names = [x for x in names if x is not self.prev_pres]
         Log.log_valid_chancellors(names)
 
         president = self.players[self.president_name]
@@ -97,8 +98,9 @@ class Game:
     def choose_policy(self, remaining):
         policies = self.deck.draw_hand()
         p_pick = self.president.president_pick(self.chancellor.name, list(policies))
+        shuffle(p_pick)
         c_pick = self.chancellor.chancellor_pick(self.president.name,
-                                                 shuffle(list(p_pick)), remaining)
+                                                 list(p_pick), remaining)
         Log.log_policy(policies, p_pick, c_pick)
 
         self.president.analyze_chancellor_card(self.chancellor.name, p_pick, c_pick)
@@ -159,10 +161,12 @@ class Game:
         for player in names:
             players[player].set_roles(Role.LIBERAL, {Role.FASCIST: [], Role.HITLER: None})
         for player in fascists:
-            players[player].set_roles(Role.FASCIST, {Role.FASCIST: list(fascists), Role.HITLER: hitler})
+            known_roles = {Role.FASCIST: list(fascists), Role.HITLER: hitler}
+            players[player].set_roles(Role.FASCIST, known_roles)
 
         h_fascists = fascists if self.num_players < 6 else []
-        players[hitler].set_roles(Role.HITLER, {Role.FASCIST: h_fascists, Role.HITLER: hitler})
+        known_roles = {Role.FASCIST: h_fascists, Role.HITLER: hitler}
+        players[hitler].set_roles(Role.HITLER, known_roles)
         return players
 
 __all__ = ["Game"]

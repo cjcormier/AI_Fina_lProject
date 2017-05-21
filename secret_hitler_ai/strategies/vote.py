@@ -14,7 +14,7 @@ def standard_liberal_vote(player: Player, president: Name, chancellor: Name):
     :param chancellor: The proposed chancellor.
     :return: The player's vote.
     """
-    probabilities = player.probabilities
+    probabilities = player.probs
     president_prob = probabilities[president].fascist
     chancellor_prob = probabilities[chancellor].fascist
 

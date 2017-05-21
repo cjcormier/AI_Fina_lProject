@@ -31,8 +31,8 @@ def analyze_revealed_card(player: Player, president: Name, chancellor: Name,
 
     orig_prob_f = player.initial_probs.fascist
     orig_prob_l = 1 - orig_prob_f
-    prev_pf = player.probabilities[president].fascist
-    prev_cf = player.probabilities[chancellor].fascist
+    prev_pf = player.probs[president].fascist
+    prev_cf = player.probs[chancellor].fascist
 
     if card is Card.LIBERAL:
         prob_l = prob_lll + prob_fll*(2*orig_prob_l-orig_prob_l**2) + \
