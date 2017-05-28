@@ -89,18 +89,20 @@ class Player:
         Adjusts the probability table so that it stays within the proper bounds
         """
         sum_p = sum(p.fascist for x, p in self.probs.items() if x not in self.fascists)
-        scale_factor = 1 if sum_p == 0 else (self.num_fascists - len(self.fascists))/sum_p
+        if sum_p == 0:
+            return
+        scale_factor = (self.num_fascists - len(self.fascists))/sum_p
 
-        # recurse = False
+        recurse = False
         for curr_player, curr_probs in self.probs.items():
             if curr_player not in self.fascists:
                 curr_probs.fascist *= scale_factor
-        #         if next_fascist_prob > 1:
-        #             recurse = True
-        #             self.probabilities[curr_player] = RoleProbs(1, curr_probs[1])
-        #             self.fascists.append(curr_player)
-        # if recurse:
-        #     self.adjust_probs()
+                if curr_probs.fascist > 1:
+                    recurse = True
+                    self.probs[curr_player].fascist = 1
+                    self.fascists.append(curr_player)
+        if recurse:
+            self.adjust_probs()
 
     def set_strategy(self, strategy_type, strategy):
         self.strats[strategy_type] = strategy
@@ -109,31 +111,37 @@ class Player:
         self.strats.update(strategies)
 
     def choose_chancellor(self, valid_players_names: List[Name]):
-        return self.strats[St.CHOOSE_CHANCELLOR](self, valid_players_names)
+        strat = self.strats[St.CHOOSE_CHANCELLOR]
+        return strat(self, valid_players_names)
 
     def chancellor_pick(self, president_name: Name, cards: List[Card],
                         deck: Tuple[int, int]):
-        return self.strats[St.CHANCELLOR_CARDS](self, president_name, cards, deck)
+        strat = self.strats[St.CHANCELLOR_CARDS]
+        return strat(self, president_name, cards, deck)
 
     def president_pick(self, chancellor_name: Name, cards: List[Card]):
-        cards = self.strats[St.PRESIDENT_CARDS](self, chancellor_name, cards)
-        return cards
+        strat = self.strats[St.PRESIDENT_CARDS]
+        return strat(self, chancellor_name, cards)
 
     def vote(self, president: Name, chancellor: Name):
-        return self.strats[St.VOTE](self, chancellor, president)
+        strat = self.strats[St.VOTE]
+        return strat(self, chancellor, president)
 
     def analyze_revealed_card(self, president: Name, chancellor: Name, card: Card,
                               remaining: Tuple[int, int]):
-        self.strats[St.ANALYZE_REVEALED_CARD](self, chancellor, president, card, remaining)
+        strat = self.strats[St.ANALYZE_REVEALED_CARD]
+        strat(self, chancellor, president, card, remaining)
 
     def analyze_chancellor_card(self, chancellor: Name, pres_card: List[Card], chanc_card: Card):
-        self.strats[St.ANALYZE_CHANCELLOR_CARD](self, chancellor, pres_card, chanc_card)
+        strat = self.strats[St.ANALYZE_CHANCELLOR_CARD]
+        strat(self, chancellor, pres_card, chanc_card)
 
     def shoot(self, valid_players: List[Name]):
-        return self.strats[St.SHOOT](self, valid_players)
+        strat = self.strats[St.SHOOT]
+        return strat(self, valid_players)
 
     def remove_player(self, player: Name):
-        """Remove a player that has been shot. :class:`role.Role`
+        """Remove a player that has been shot.
         
         :param player: Player to remove.
         """
