@@ -7,7 +7,7 @@ from secret_hitler_ai.player import Player, Name
 from typing import List
 
 
-def choose_liberal_chancellor(player: Player, valid_players: List[Player]):
+def choose_liberal_chancellor(player: Player, valid_players: List[Name]):
     """
     The player chooses the valid player who they think is most likely to be liberal.
     

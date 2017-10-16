@@ -1,7 +1,6 @@
 """
 Helper functions for various strategies.
 """
-from secret_hitler_ai.player import  Player
 
 
 def multi_3(num: int):
@@ -16,6 +15,7 @@ def multi_2(num: int):
     num!/(num - 2)!
     """
     return num*(num-1)
+
 
 def pass_strat(*args):
     """

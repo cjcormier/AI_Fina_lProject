@@ -4,6 +4,7 @@ from secret_hitler_ai.role import Role
 class Log:
     can_log = True
     can_log_probs = False
+    file = None
 
     def __init__(self):
         self.l_pres = 0
@@ -12,6 +13,15 @@ class Log:
         self.l_chanc = 0
         self.f_chanc = 0
         self.h_chanc = 0
+
+    @staticmethod
+    def set_file(file: str):
+        Log.file = open(file, 'w+')
+
+    @staticmethod
+    def close_file():
+        if Log.file is not None:
+            Log.file.close()
 
     @staticmethod
     def allow_logging(new_log):
@@ -59,9 +69,12 @@ class Log:
         if Log.can_log:
             msg = str(msg)
             try:
-                print(msg.format(*args))
+                msg = msg.format(*args)
             except:
-                print(msg.format(args))
+                msg = msg.format(args)
+            print(msg)
+            if Log.file is not None:
+                Log.file.write(msg + '\n')
 
     def record_gov(self, president, chancellor):
         if president.role is Role.LIBERAL:

@@ -4,33 +4,42 @@ Strategies to vote on a proposed government.
 from secret_hitler_ai.player import Player, Name
 
 
-def standard_liberal_vote(player: Player, president: Name, chancellor: Name):
+def standard_liberal_vote_generator(cutoff: float):
     """
-    Votes to elect a government only if the probability that the proposed government is 
-    less likely to have one fascist than random chance (kinda).
-    
-    :param player: The player voting on the proposed government.
-    :param president: The proposed president.
-    :param chancellor: The proposed chancellor.
-    :return: The player's vote.
+    Generates a standard liberal vote strategy which returns true only if the probability 
+    that the proposed government is  less likely to have one fascist than the cut off
+    :param cutoff: 
+    :return: 
     """
-    probabilities = player.probs
-    president_prob = probabilities[president].fascist
-    chancellor_prob = probabilities[chancellor].fascist
+    def standard_liberal_vote_prototype(player: Player, president: Name, chancellor: Name):
+        """
+        Votes to elect a government only if the probability that the proposed government 
+        is less likely to have one fascist than random chance (+/- some leeway).
+        
+        :param player: The player voting on the proposed government.
+        :param president: The proposed president.
+        :param chancellor: The proposed chancellor.
+        :return: The player's vote.
+        """
+        probabilities = player.probs
+        president_prob = probabilities[president].fascist
+        chancellor_prob = probabilities[chancellor].fascist
 
-    unknown_fascists = player.num_fascists - len(player.fascists)
-    unknown_players = len(probabilities) - len(player.fascists)
-    unknown_players -= 1 if player not in player.fascists else 0
-    if unknown_fascists == 0:
-        default_individual_prob = 0
-    else:
-        default_individual_prob = unknown_fascists/unknown_players
+        unknown_fascists = player.num_fascists - len(player.fascists)
+        unknown_players = len(probabilities) - len(player.fascists)
+        unknown_players -= 1 if player not in player.fascists else 0
+        if unknown_fascists == 0:
+            default_individual_prob = 0
+        else:
+            default_individual_prob = unknown_fascists/unknown_players
 
-    limit_prob = 2*default_individual_prob - default_individual_prob**2
-    # adjust = .04 * (len(probabilities))**.66
-    adjust = .07
-    prob_fascist = president_prob + chancellor_prob - president_prob*chancellor_prob
-    return prob_fascist < limit_prob + adjust
+        limit_prob = 2*default_individual_prob - default_individual_prob**2
+        prob_fascist = president_prob + chancellor_prob - president_prob*chancellor_prob
+        return prob_fascist < limit_prob + cutoff
+    return standard_liberal_vote_prototype
+
+
+standard_liberal_vote = standard_liberal_vote_generator(.7)
 
 
 def standard_fascist_vote(player: Player, president: Name, chancellor: Name):
