@@ -2,7 +2,7 @@
 from typing import List, Dict, Callable, Union, Tuple
 
 from secret_hitler_ai.role import Role, Prob, RoleProbs
-from secret_hitler_ai.board import Card
+from secret_hitler_ai.deck import Card
 from secret_hitler_ai.strategies.strategy_types import StrategyTypes as St
 
 Name = Union[str, int]
@@ -188,4 +188,5 @@ class Player:
                 min_prob = prob
         return min_player
 
-__all__ = ['Player']
+
+__all__ = ['Player', 'Name']

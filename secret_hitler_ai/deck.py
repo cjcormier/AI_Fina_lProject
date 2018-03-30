@@ -76,4 +76,5 @@ class Deck:
         """
         return self.libDeck+self.libDisc, self.facDeck+self.facDisc
 
+
 __all__ = ['Deck', 'Card']
